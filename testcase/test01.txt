@@ -1,0 +1,28 @@
+//Load and store
+addi x1,x0,12
+addi x2,x0,5
+add x3, x1,x2
+addi x4,x0,7
+sw x3, 4(x1)
+lw x5, 4(x1)
+
+//machine code
+00c00093
+00500113
+002081b3
+00700213
+0030a223
+0040a283
+//result in hex
+Register Expected Results
+## expect[0] = 0x00000000
+## expect[1] = 0x0000000c
+## expect[2] = 0x00000005
+## expect[3] = 0x00000011
+## expect[4] = 0x00000007
+## expect[5] = 0x00000011
+//data mem content
+0x00000010	17
+
+//comment
+test passed
