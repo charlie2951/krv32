@@ -1,5 +1,6 @@
 //*********** Testbench for CPU *** //
-
+// * Note that this testbench is used to test a 6 bit counter where LEDS are connected at o/p *//
+//** LED Ports are active low in nature (inverted logic) //
 `include "cpu_v02.v"
 
 module top_test;
