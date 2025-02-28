@@ -28,4 +28,73 @@ The 1st version is implemented in Tang 9K series FPGA with a clock speed of 27 M
 ![image](https://github.com/user-attachments/assets/bd8db6f2-b492-446d-97b7-45cee75a54ea)
 
 **Flowchart** <p>
-The CPU is implemented in a straightforward way by keeping the code simple and understandable. Further optimization may be done to save hardware sources and speed. In this implementation, a multi-clock cycle is required to execute a single instruction. Currently, the R-type (ADD, SUB, AND, OR etc) and Immediate instructions (I-type) instructions (ADDI, ANDI, ORI, etc) consume 5 clock cycles, Load and store type instructions take 4 cycles, Branch and Jump instructions take 3 cycles, and others (LUI, AUIPC) take 4 cycles. Pipelining may be implemented in the future to speed up the execution.
+The CPU is implemented in a straightforward way by keeping the code simple and understandable. Further optimization may be done to save hardware sources and speed. In this implementation, a multi-clock cycle is required to execute a single instruction. Currently, the R-type (ADD, SUB, AND, OR etc) and Immediate instructions (I-type) instructions (ADDI, ANDI, ORI, etc) consume 5 clock cycles, Load and store type instructions take 4 cycles, Branch and Jump instructions take 3 cycles, and others (LUI, AUIPC) take 4 cycles. Pipelining may be implemented in the future to speed up the execution. <p>
+**Execution Flow in the State machine** <p>
+The initial state is *RESET* state. After that the control goes to *FETCH* state.<p>
+*FETCH:* The 32-bit instruction code is loaded from the program memory into 32 bit instruction register named data <p>
+```verilog
+FETCH: 
+      begin
+        data[31:24] <= ram[addr];
+        data[23:16] <= ram[addr+1];
+        data[15:8] <= ram[addr+2];
+        data[7:0] <= ram[addr+3];
+        state <= DECODE;
+      end
+```
+*DECODE:* The decoding of instruction takes place in this state. A separate mode detector module is attached to decide the addressing mode.
+```verilog
+module addressing_mode
+(
+	input [6:0] opcode,
+	output reg [3:0] mode
+);
+
+always @(opcode)
+begin
+case(opcode)
+//R type
+7'b0110011: mode = 1;
+//I-type
+7'b0010011: mode = 2;
+//Load instruction
+7'b0000011: mode = 3;
+//Store
+7'b0100011: mode = 4;
+//Branch
+7'b1100011: mode = 5;
+//Jump
+7'b1101111: mode = 6;
+//LUI 
+7'b0110111: mode = 7;
+//AUIPC
+7'b0010111: mode = 8;
+//Reset
+7'b0000000: mode = 0;
+//JALR
+7'b1100111: mode = 10;
+
+default: mode = 9;
+endcase
+end
+endmodule
+```
+Then the corresponding control and status signal is generated depending upon the addressing mode (R-type, I-type, branch, Jump etc). See Verilog file for details. <p>
+*REG_RD:* The register read state reads the source register's content and also immediate data for (I-type) mode. <p>
+*ALU:* Performs arithmetical and logical operations as per instructions and stores the result directly to the destination register in the register file (regfile).<p>
+*REG_WR:* Perform data memory read and write operation for LOAD and STORE type instructions (LB, LW, LH, SB, SW, SH etc.) <p>
+*PC_UPDATE:* Update the program counter (address value) to fetch the next instruction code from program memory.<p>
+*BRANCHING:* State to control/handle branching instructions. Note that for this type of instruction, the program counter is updated inside the same state. <p>
+*JUMPING:* Jump instructions are managed here along with the next address update.<p>
+Other states are LUI and AUIPC to implement corresponding instructions. <p>
+**Important** <p>
+The instruction memory (ram) accepts 8 bit data as shown below. So, in firmware.hex file arrange the instruction code in 8 bit chunk. You can use a python script (split.py) available inside GCC folder to split the 32 bit hex code into 8 bit chunk. <p>
+*Sample instruction data format to be loaded in program memory (content of firmware.hex)*
+```
+08 00 01 13
+00 80 00 EF
+00 10 00 73
+7C 00 28 23
+03 C0 00 6F
+```
+
