@@ -32,7 +32,7 @@ module cpu(
   initial
   begin
     ram[0]=32'h0;
-    $readmemh("code1.txt", ram);
+      $readmemh("firmware.txt", ram);
     state=0;
     en=0;
     divclk=0;
