@@ -1,12 +1,21 @@
 `include "addressing_mode.v"
 
+//*** Version-3 of KRV-32 ***//
+// ** Attempt to make the code compatible with GCC RISC-V compiler ***//
+//** Program memory space 0-127
+// Data memory and IO space  starts from Addr 2000.
+// LED port connected to ADDR = 2000-2003
+
 module cpu(
     input rst, clk,
-    output reg cpu_busy
+    output reg cpu_busy,
+    output [5:0] LEDS
   );
-
-  reg [7:0] ram [0:127]; //program memory 127 byte
-  reg [7:0] datamem [0:63]; //data memory with 64 byte
+  parameter SIZE = 128; //program memory size
+  parameter DATA_OFFSET = 2000; //data mem location starts in address space 2000
+  reg divclk;
+  reg [7:0] ram [0:SIZE-1]; //program memory 
+  reg [7:0] datamem [0:31];//data and IO memory 
   reg [31:0] regfile[0:15];//Register file with X0 to X15;
   reg [31:0] addr; //address bus
   reg [31:0] data; //data bus
@@ -23,9 +32,10 @@ module cpu(
   initial
   begin
     ram[0]=32'h0;
-    $readmemh("firmware.txt", ram);
+    $readmemh("code1.txt", ram);
     state=0;
     en=0;
+    divclk=0;
     addr = 0;
     regfile[0]=32'h0;//X0 reg is always set to hardware 0
     regfile[1]=32'h0;
@@ -48,15 +58,25 @@ module cpu(
   addressing_mode mode_finder(data[6:0],mode);
   //program memory
 
-  //always @(addr or rst)
-   // data = rst ? 32'h0 : {ram[addr],ram[addr+1],ram[addr+2],ram[addr+3]};
+  //always @(addr)
+  //  data = (!rst) ? 32'h0 : {ram[addr],ram[addr+1],ram[addr+2],ram[addr+3]};
 
+    assign LEDS = ~(datamem[3][5:0]); //LEDS are connected to datamem[3]
+
+// ---------------------------------------------------------------------//
+// *** Implementation of clock divider to get a 10MHz clock from 25MHz *** //
+//Approx divided by two
+/*
+always @(posedge clk) begin
+divclk <= ~divclk;
+end
+*/
 
   //clock dependent operation
 
   always @(posedge clk)
   begin
-    if(rst)
+    if(!rst)
     begin
       addr <= 0;
       state <= RESET;
@@ -66,7 +86,7 @@ module cpu(
     case(state)
       RESET:
       begin
-        if(rst)
+        if(!rst)
           state <= RESET;
         else
           state <= FETCH;
@@ -107,7 +127,7 @@ module cpu(
             //$display("Not implemented");
             rs1 <= data[19:15];
             rd <= data[11:7];
-            data_rs2 <=data[31]?{20'hfffff, data[31:20]}:{20'h0, data[31:20]};
+            data_rs2 <=data[31]?{20'hfffff, data[31:20]} - DATA_OFFSET :{20'h0, data[31:20]}-DATA_OFFSET;
             funct3 <= data[14:12];
             state <= REG_WR;
           end
@@ -118,7 +138,7 @@ module cpu(
             rs2 <= data[24:20];
             funct3 <= data[14:12];
             //data_rs1 <= regfile[rs1];
-            data_rs2 <=data[31]?{20'hfffff, data[31:25],data[11:7]}:{20'h0, data[31:25],data[11:7]};
+            data_rs2 <=data[31]?{20'hfffff, data[31:25],data[11:7]}-DATA_OFFSET:{20'h0, data[31:25],data[11:7]}-DATA_OFFSET;
             state <= REG_WR;
 
           end
@@ -190,6 +210,8 @@ module cpu(
               regfile[rd] <= data_rs1 >> data_rs2; //shift right
             7'b0000010:
               regfile[rd] <= (data_rs1 < data_rs2)? 1:0; //set less than
+            7'b0000011:
+              regfile[rd] <= (data_rs1 < {20'h0,data_rs2[31:20]})? 1:0; //SLTIU
           endcase
           // $display(regfile[rd]);
         end
@@ -220,14 +242,14 @@ module cpu(
             3'b010://LW
               regfile[rd] <= {datamem[regfile[rs1] + data_rs2],datamem[regfile[rs1] + data_rs2+1],datamem[regfile[rs1] + data_rs2+2],datamem[regfile[rs1] + data_rs2+3]};
 
-            3'b100://LBU
+           // 3'b100://LBU
 
-              $display("Not implemented");
-            3'b101://LHU
+            //  $display("Not implemented");
+           // 3'b101://LHU
 
-              $display("Not implemented");
-            default:
-              $display("Not implemented");
+            //  $display("Not implemented");
+           // default:
+            //  $display("Not implemented");
           endcase
         end
         if(mode==4)
@@ -263,6 +285,7 @@ module cpu(
 
       end
 
+
       BRANCHING: //for branch instructions
       begin
         case(funct3)
@@ -282,7 +305,7 @@ module cpu(
 
       JUMPING: //for Jump instructions
       begin
-        regfile[rd] <= addr + 4; //rd=PC+4;
+        regfile[rd] <= (rd==0)?0:(addr + 4); //rd=PC+4; //change for x0 to include j instruction in compiler
         addr <= (mode==6)? (addr + data_rs2):((mode==10)?(regfile[rs1]+data_rs2):addr); //PC=PC+imm for jal, PC=rs1+imm for jalr
 
         state <=FETCH;
