@@ -15,8 +15,8 @@ Refer to the RiSC-V official page and/or other tutorials. Some useful links are 
 For debugging and behavioral simulation, use any Verilog compiler. I have used open-source Icarus Verilog with GTKWave waveform viewer. A sample testbench is added for debugging and test purposes. Modify the testbench as per your requirements.<p>
 *Program Memory space*: Default is 128 byte. Each location will contain 8-bit data. However, you can change it in code. Verilog Implementation:* reg[7:0] ram[0:127]* <p>
 *Data and I/O memory address space* By default 64 byte. Each location will contain 8-bit data. Verilog implementation: *reg[7:0] datamem [0:63]* <p>
-I/O and data memory offset address start from 0x00002000. However in RTL code, while using data memory for load and store instructions and I/O operations, it uses datamem starting from the 0th location. <p>
-Note: Data memory location 0 to 3 i.e. 0x2000 to 0x2003 is used for output. 0x2003 is mapped to six onboard LEDs in Gowin Semiconductor's Sipeed Tang-9 series FPGA board.<p>
+I/O and data memory offset address start from 0x00002000. However, while using data memory for load and store instructions and I/O operations in RTL code, it uses datamem starting from the 0th location. <p>
+Note: Data memory location 0 to 3 i.e. 2000 to 2003 is used for output. 2003 is mapped to six onboard LEDs in Gowin Semiconductor's Sipeed Tang-9 series FPGA board.<p>
   **FPGA Implementation**
 The 1st version is implemented in Tang 9K series FPGA with a clock speed of 27 MHz. <p>
 
@@ -101,3 +101,72 @@ If you are not familiar with hex code (machine code) generation from assembly co
 
 ## Steps for Generating HEX code from assembly language
 Use any RISC-V assembler to convert your assembly code into Hex dump. One of such online assembler can be found here https://riscvasm.lucasteske.dev/  . Copy the code hex dump, reformat it into 8-bit chunk manually or using split.py and paste it inside firmware.txt file in Verilog directory. Then run simulation. You can use any other assembler such as RISC-V toolchain etc.
+## Steps for Generating Hex code from RISC-V C code
+1. Install prerequisite for Ubuntu
+```
+$ sudo apt-get install autoconf automake autotools-dev curl python3 python3-pip python3-tomli libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev ninja-build git cmake libglib2.0-dev libslirp-dev
+```
+2. Install RISC-V gcc toolchain. You need a Linux PC or in Windows, Windows subsystem for linux with Ubuntu support. Follow the steps to install the toolchain <p>
+Clone the official Risc-V gnu toolchain and compile for 32-bit arch with ilp32 option (RV32I) without multiplication support that we have implemented into FPGA.
+```
+$ git clone https://github.com/riscv/riscv-gnu-toolchain
+./configure --prefix=/opt/riscv --with-arch=rv32i --with-abi=ilp32
+make linux
+```
+Make sure that */opt/riscv* path having rw access. Otherwise change it to your preferred path. <p>
+To compile toolchain for multilib support (both 32 bit and 64 bit), use the following <p>
+```
+./configure --prefix=/opt/riscv --enable-multilib
+make linux
+```
+The multilib compiler will have the prefix riscv64-unknown-elf- or riscv64-unknown-linux-gnu- but will be able to target both 32-bit and 64-bit systems. It will support the most common -march/-mabi options, which can be seen by using the --print-multi-lib flag on either cross-compiler.<p>
+
+**Test a Sample counter program** <p>
+Open a test editor and add the following piece of code. Save the code as *main.c*<p>
+```c
+#include <stdint.h>
+#include <stdlib.h>
+
+#define LEDS_START_ADDR 2000
+#define LEDS_DATA_REG_OFFSET 0
+#define LEDS_DATA_REG *((volatile unsigned int *)(LEDS_START_ADDR + LEDS_DATA_REG_OFFSET))
+
+int main(void)
+{
+
+    LEDS_DATA_REG = 0b000000;
+    int  i=0, j=0, k=0;
+
+    while (1)
+    {
+	if(LEDS_DATA_REG == 64)
+	LEDS_DATA_REG = 0;
+       
+       for(i=0;i<1000;i++)
+	{
+		for(j=0;j<1000;j++){
+		}
+	}
+     	LEDS_DATA_REG = LEDS_DATA_REG + 1;		
+}
+    return 0;
+}
+
+```
+Here #define LEDS_START_ADDR 2000 point to the location where LED ports are connected (2000-2003). Initially, LEDS_DATA_REG = 0b000000 i.e. all LEDS are off. Then two nested for loops are provided to include delay so that changes can be observed in the  eye. The while(1) provides an infinite loop which is common for any embedded CPU. Once all LEDS are ON i.e. count=63, then the counter will be cleared and again it will start counting from the beginning. <p>
+
+***Compiling the source code*** <p>
+A dedicated makefile is provided (inside testcase located at (testcase/RISCV_GCC_testcases/counter/Makefile) to automate the task. Execute the following commands serially to generate the hex code with an 8-bit chunk. Note: if you are using 32-bit toolchain without multilib support then replace the *riscv64*  keyword by using *riscv32* and also check the GCC toolchain path mentioned in the Makefile. In my case, it is *RISCV_TOOLCHAIN_DIR = /home/kiit/riscv/bin*. Change it as per your installation.
+
+```shell
+make clean
+make
+python3 split.py
+```
+Copy the content of the generated firmware.txt file (you may exclude zeros) into your FPGA's firmware.txt and run the FPGA design flow or simulate it for debugging. You may open the *dumpfile* in text editor to see the generated assembly code from C code. This is useful for debugging. <p>
+
+***Points to Remember*** <p>
+1. *Program memory size:* The default size is 128 byte. See the generated firmware.txt file. If it crosses 32 lines (=32 x 4) excluding the last rows of ZEROS, the code will not fit into 128 byte memory space. You have to increase it. For that, open Verilog file *cpu.v* and change the line *reg[7:0] ram [0:127]* to the required value i.e. *reg[7:0] ram [0:255]*. Also, edit the *Makefile* and change the variable *MEM_SIZE = 128* to the required value. Then open the loader script *sections.lds* and change the LENGTH variable *mem : ORIGIN = 0x00000000, LENGTH = 128* to the required value. Also, do not write any data into *datamem* starting from location 0-3 (actually in address space it is 2000-2003). It is reserved for LED port.
+2. *Number of Registers in Register file* : The full RISC-V (RV-32I) architecture having total 32 register (X0-X31). In the current version of CPU, we have used a total 16 registers (X0-X15). If you need more registers (all 32 regs) then edit the *cpu.v* line *reg [31:0] regfile[0:15]* to *reg [31:0] regfile[0:31]*. However, this will require more hardware resources on FPGA. <p>
+3. Traps or any other interrupts are not supported. CSR instructions are not supported in the current version. 
+***N.B.*** This is the initial version of cpu and may contain additional bug.
