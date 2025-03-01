@@ -1,5 +1,5 @@
-# A subset of RISC-V architecture implementation for low-resource FPGA 
-A tiny version of RISC-V for low-resource FPGA developed by the Integrated System Design lab, School of Electronics, KIIT University
+# A subset of RISC-V architecture (RV32I) implementation for low-resource FPGA 
+A tiny version of RISC-V for low-resource FPGA developed by the Integrated System Design lab, School of Electronics, KIIT University <p>
 **Objective**
 The main objective of this project is to prototype a RISC-V 32-bit CPU with an **RV32 base integer (RV32I) instruction set**. The CPU is coded using Verilog HDL from scratch and most of the instruction sets are implemented. The code is compatible with the GNU RISC-V toolchain (both assembler and compiler).
 
