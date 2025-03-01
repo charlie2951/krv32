@@ -1,4 +1,4 @@
-`include "addressing_mode.v"
+`include "addressing_mode.v" //delete this line for FPGA implementation(it will be included by default)
 
 //*** Version-3 of KRV-32 ***//
 // ** Attempt to make the code compatible with GCC RISC-V compiler ***//
@@ -13,7 +13,6 @@ module cpu(
   );
   parameter SIZE = 128; //program memory size
   parameter DATA_OFFSET = 2000; //data mem location starts in address space 2000
-  reg divclk;
   reg [7:0] ram [0:SIZE-1]; //program memory 
   reg [7:0] datamem [0:31];//data and IO memory 
   reg [31:0] regfile[0:15];//Register file with X0 to X15;
@@ -35,7 +34,6 @@ module cpu(
       $readmemh("firmware.txt", ram);
     state=0;
     en=0;
-    divclk=0;
     addr = 0;
     regfile[0]=32'h0;//X0 reg is always set to hardware 0
     regfile[1]=32'h0;
@@ -56,27 +54,17 @@ module cpu(
   end
   //Instantiate sub modules
   addressing_mode mode_finder(data[6:0],mode);
-  //program memory
+    //***Assign LED ports to datamem location 3 (last 6 bit)for six LED on Tang-9 FPGA
 
-  //always @(addr)
-  //  data = (!rst) ? 32'h0 : {ram[addr],ram[addr+1],ram[addr+2],ram[addr+3]};
-
-    assign LEDS = ~(datamem[3][5:0]); //LEDS are connected to datamem[3]
+  assign LEDS = ~(datamem[3][5:0]); //LEDS are connected to datamem[3]
 
 // ---------------------------------------------------------------------//
-// *** Implementation of clock divider to get a 10MHz clock from 25MHz *** //
-//Approx divided by two
-/*
-always @(posedge clk) begin
-divclk <= ~divclk;
-end
-*/
 
-  //clock dependent operation
+  //**** clock dependent operation Main State machine for CPU starts from here **** //
 
   always @(posedge clk)
   begin
-    if(!rst)
+      if(!rst) //we have a neg reset in FPGA board
     begin
       addr <= 0;
       state <= RESET;
@@ -92,7 +80,7 @@ end
           state <= FETCH;
       end
 
-      FETCH: //Fetch data from progmem RAM
+        FETCH: //Fetch data from progmem memory (RAM)
       begin
         data[31:24] <= ram[addr];
         data[23:16] <= ram[addr+1];
@@ -100,7 +88,7 @@ end
         data[7:0] <= ram[addr+3];
         state <= DECODE;
       end
-      DECODE: //Decoding of different instruction and generate signal
+      DECODE: //Decoding of different instruction and generating signal
       begin
         cpu_busy <= 1;
         case(mode)
@@ -124,7 +112,6 @@ end
           end
           3: //Load type instruction
           begin
-            //$display("Not implemented");
             rs1 <= data[19:15];
             rd <= data[11:7];
             data_rs2 <=data[31]?{20'hfffff, data[31:20]} - DATA_OFFSET :{20'h0, data[31:20]}-DATA_OFFSET;
@@ -133,11 +120,9 @@ end
           end
           4: //store type instruction
           begin
-            // $display("Not implemented");
             rs1 <= data[19:15];
             rs2 <= data[24:20];
             funct3 <= data[14:12];
-            //data_rs1 <= regfile[rs1];
             data_rs2 <=data[31]?{20'hfffff, data[31:25],data[11:7]}-DATA_OFFSET:{20'h0, data[31:25],data[11:7]}-DATA_OFFSET;
             state <= REG_WR;
 
@@ -189,7 +174,7 @@ end
         state <= ALU;
       end
 
-      ALU: //perform ALU operation follwed by store result into regfile
+      ALU: //perform ALU operation followed by store result into regfile
       begin
         if(alu_en)
         begin
@@ -213,14 +198,14 @@ end
             7'b0000011:
               regfile[rd] <= (data_rs1 < {20'h0,data_rs2[31:20]})? 1:0; //SLTIU
           endcase
-          // $display(regfile[rd]);
+          
         end
         else
           regfile[rd] <= 32'bx;
 
         state <= PC_UPDATE;
       end
-      PC_UPDATE: //update the program counter and decide to pickup next instruction
+      PC_UPDATE: //update the program counter and decide to pick up next instruction
       begin
         addr <= (mode!=9)?(addr + 4):0;
         state <= FETCH;
@@ -276,7 +261,7 @@ end
               datamem[regfile[rs1] + data_rs2 + 2] <= regfile[rs2][15:8];
               datamem[regfile[rs1] + data_rs2 + 1] <= regfile[rs2][23:16];
               datamem[regfile[rs1] + data_rs2 ] <= regfile[rs2][31:24];
-              //$display(datamem[16]);
+              
             end
 
           endcase
@@ -305,7 +290,7 @@ end
 
       JUMPING: //for Jump instructions
       begin
-        regfile[rd] <= (rd==0)?0:(addr + 4); //rd=PC+4; //change for x0 to include j instruction in compiler
+          regfile[rd] <= (rd==0)?0:(addr + 4); //rd=PC+4; //changes for x0 to include j instruction in compiler
         addr <= (mode==6)? (addr + data_rs2):((mode==10)?(regfile[rs1]+data_rs2):addr); //PC=PC+imm for jal, PC=rs1+imm for jalr
 
         state <=FETCH;
