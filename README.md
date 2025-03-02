@@ -13,10 +13,10 @@ Refer to the RiSC-V official page and/or other tutorials. Some useful links are 
 
 **Debugging and Simulation** <p>
 For debugging and behavioral simulation, use any Verilog compiler. I have used open-source Icarus Verilog with GTKWave waveform viewer. A sample testbench is added for debugging and test purposes. Modify the testbench as per your requirements.<p>
-*Program Memory space*: Default is 128 byte. Each location will contain 8-bit data. However, you can change it in code. Verilog Implementation: *reg[7:0] ram[0:127]* <p>
+*Program Memory space*: Default is 256 byte. Each location will contain 8-bit data. However, you can change it in code. Verilog Implementation: *reg[7:0] ram[0:256]* <p>
 *Data and I/O memory address space* By default 64 byte. Each location will contain 8-bit data. Verilog implementation: *reg[7:0] datamem [0:63]* <p>
-I/O and data memory offset address start from 0x00002000. However, while using data memory for load and store instructions and I/O operations in RTL code, it uses datamem starting from the 0th location. <p>
-Note: Data memory location 0 to 3 i.e. 2000 to 2003 is used for output. 2003 is mapped to six onboard LEDs in Gowin Semiconductor's Sipeed Tang-9 series FPGA board.<p>
+I/O and data memory offset address start from 1000. However, while using data memory for load and store instructions and I/O operations in RTL code, it uses datamem starting from the 0th location. <p>
+Note: Data memory location 0 to 3 i.e. 1000 to 1003 is used for output. 1003 is mapped to six onboard LEDs in Gowin Semiconductor's Sipeed Tang-9 series FPGA board.<p>
   **FPGA Implementation**
 The 1st version is implemented in Tang 9K series FPGA with a clock speed of 27 MHz. <p>
 
@@ -127,7 +127,7 @@ Open a test editor and add the following piece of code. Save the code as *main.c
 #include <stdint.h>
 #include <stdlib.h>
 
-#define LEDS_START_ADDR 2000
+#define LEDS_START_ADDR 1000
 #define LEDS_DATA_REG_OFFSET 0
 #define LEDS_DATA_REG *((volatile unsigned int *)(LEDS_START_ADDR + LEDS_DATA_REG_OFFSET))
 
@@ -166,7 +166,7 @@ python3 split.py
 Copy the content of the generated firmware.txt file (you may exclude zeros) into your FPGA's firmware.txt and run the FPGA design flow or simulate it for debugging. You may open the *dumpfile* in text editor to see the generated assembly code from C code. This is useful for debugging. <p>
 
 ***Points to Remember*** <p>
-1. *Program memory size:* The default size is 128 byte. See the generated firmware.txt file. If it crosses 32 lines (=32 x 4) excluding the last rows of ZEROS, the code will not fit into 128 byte memory space. You have to increase it. For that, open Verilog file *cpu.v* and change the line *reg[7:0] ram [0:127]* to the required value i.e. *reg[7:0] ram [0:255]*. Also, edit the *Makefile* and change the variable *MEM_SIZE = 128* to the required value. Then open the loader script *sections.lds* and change the LENGTH variable *mem : ORIGIN = 0x00000000, LENGTH = 128* to the required value. Also, do not write any data into *datamem* starting from location 0-3 (actually in address space it is 2000-2003). It is reserved for LED ports.
+1. *Program memory size:* The default size is 256 byte. See the generated firmware.txt file. If it crosses 32 lines (=32 x 4) excluding the last rows of ZEROS, the code will not fit into 128 byte memory space. You have to increase it. For that, open Verilog file *cpu.v* and change the line *reg[7:0] ram [0:256]* to the required value i.e. *reg[7:0] ram [0:511]*. Also, edit the *Makefile* and change the variable *MEM_SIZE = 128* to the required value. Then open the loader script *sections.lds* and change the LENGTH variable *mem : ORIGIN = 0x00000000, LENGTH = 128* to the required value. Also, do not write any data into *datamem* starting from location 0-3 (actually in address space it is 2000-2003). It is reserved for LED ports.
 2. *Number of Registers in Register file* : The full RISC-V (RV-32I) architecture having total 32 register (X0-X31). In the current version of the CPU, we have used a total 16 registers (X0-X15). If you need more registers (all 32 regs) then edit the *cpu.v* line *reg [31:0] regfile[0:15]* to *reg [31:0] regfile[0:31]*. See the *dumpfile* after C compilation and check what registers are used. However, this will require more hardware resources on FPGA. <p>
 3. Traps or any other interrupts are not supported. CSR instructions are not supported in the current version. <p>
 ***N.B.*** This is the initial version of CPU and may contain additional bugs.
