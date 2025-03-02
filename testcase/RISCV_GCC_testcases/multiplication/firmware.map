@@ -1,0 +1,64 @@
+Archive member included to satisfy reference by file (symbol)
+
+/home/kiit/riscv/lib/gcc/riscv64-unknown-elf/13.2.0/rv32i/ilp32/libgcc.a(muldi3.o)
+                              ./main.o (__mulsi3)
+
+Discarded input sections
+
+ .debug_line    0x00000000       0x7a /home/kiit/riscv/lib/gcc/riscv64-unknown-elf/13.2.0/rv32i/ilp32/libgcc.a(muldi3.o)
+ .debug_line_str
+                0x00000000       0x96 /home/kiit/riscv/lib/gcc/riscv64-unknown-elf/13.2.0/rv32i/ilp32/libgcc.a(muldi3.o)
+ .debug_info    0x00000000       0x31 /home/kiit/riscv/lib/gcc/riscv64-unknown-elf/13.2.0/rv32i/ilp32/libgcc.a(muldi3.o)
+ .debug_abbrev  0x00000000       0x28 /home/kiit/riscv/lib/gcc/riscv64-unknown-elf/13.2.0/rv32i/ilp32/libgcc.a(muldi3.o)
+ .debug_aranges
+                0x00000000       0x20 /home/kiit/riscv/lib/gcc/riscv64-unknown-elf/13.2.0/rv32i/ilp32/libgcc.a(muldi3.o)
+ .debug_str     0x00000000       0xab /home/kiit/riscv/lib/gcc/riscv64-unknown-elf/13.2.0/rv32i/ilp32/libgcc.a(muldi3.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+mem              0x00000000         0x00000100
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+
+.text           0x00000000       0x9c
+ *(.boot)
+ *(.text)
+ .text          0x00000000        0xc ./start.o
+                0x00000000                start
+ .text          0x0000000c       0x6c ./main.o
+                0x0000000c                mult
+                0x00000024                main
+ .text          0x00000078       0x24 /home/kiit/riscv/lib/gcc/riscv64-unknown-elf/13.2.0/rv32i/ilp32/libgcc.a(muldi3.o)
+                0x00000078                __mulsi3
+ *(.text)
+ *(.rodata*)
+LOAD ./start.o
+LOAD ./main.o
+LOAD /home/kiit/riscv/lib/gcc/riscv64-unknown-elf/13.2.0/rv32i/ilp32/libgcc.a
+OUTPUT(firmware.elf elf32-littleriscv)
+
+.data           0x0000009c        0x0
+ .data          0x0000009c        0x0 ./start.o
+ .data          0x0000009c        0x0 ./main.o
+ .data          0x0000009c        0x0 /home/kiit/riscv/lib/gcc/riscv64-unknown-elf/13.2.0/rv32i/ilp32/libgcc.a(muldi3.o)
+
+.bss            0x0000009c        0x0
+ .bss           0x0000009c        0x0 ./start.o
+ .bss           0x0000009c        0x0 ./main.o
+ .bss           0x0000009c        0x0 /home/kiit/riscv/lib/gcc/riscv64-unknown-elf/13.2.0/rv32i/ilp32/libgcc.a(muldi3.o)
+
+.riscv.attributes
+                0x00000000       0x1c
+ .riscv.attributes
+                0x00000000       0x1a ./start.o
+ .riscv.attributes
+                0x0000001a       0x1c ./main.o
+ .riscv.attributes
+                0x00000036       0x1a /home/kiit/riscv/lib/gcc/riscv64-unknown-elf/13.2.0/rv32i/ilp32/libgcc.a(muldi3.o)
+
+.comment        0x00000000       0x1b
+ .comment       0x00000000       0x1b ./main.o
+                                 0x1c (size before relaxing)
