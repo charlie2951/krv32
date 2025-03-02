@@ -169,4 +169,7 @@ Copy the content of the generated firmware.txt file (you may exclude zeros) into
 1. *Program memory size:* The default size is 256 byte. See the generated firmware.txt file. If it crosses 32 lines (= 64 x 4) excluding the last rows of ZEROS, the code will not fit into 256 byte memory space. You have to increase it. For that, open Verilog file *cpu.v* and change the line *reg[7:0] ram [0:255]* to the required value i.e. *reg[7:0] ram [0:511]* by assigning a new valie to the parameter SIZE in RTL code. Also, edit the *Makefile* and change the variable *MEM_SIZE = 256* to the required value. Then open the loader script *sections.lds* and change the LENGTH variable *mem : ORIGIN = 0x00000000, LENGTH = 256* to the required value. Also, do not write any data into *datamem* starting from location 0-3 (actually in address space it is 2000-2003). It is reserved for LED ports.
 2. *Number of Registers in Register file* : The full RISC-V (RV-32I) architecture having total 32 register (X0-X31). In the current version of the CPU, we have used a total 16 registers (X0-X15). If you need more registers (all 32 regs) then edit the *cpu.v* line *reg [31:0] regfile[0:15]* to *reg [31:0] regfile[0:31]*. See the *dumpfile* after C compilation and check what registers are used. However, this will require more hardware resources on FPGA. <p>
 3. Traps or any other interrupts are not supported. CSR instructions are not supported in the current version. <p>
-***N.B.*** This is the initial version of CPU and may contain additional bugs.
+***N.B.*** This is the initial version of CPU and may contain additional bugs. <p>
+
+## Schematic of GOWIN Tang 9k FPGA
+![image](https://github.com/user-attachments/assets/23155624-dbff-4b06-b6cf-676d198d0315)
