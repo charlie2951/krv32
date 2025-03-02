@@ -1,4 +1,4 @@
-.equ MEM_SIZE, 0x80  
+.equ MEM_SIZE, 1064  
 .section .text
 .globl start
 start:
