@@ -6,7 +6,7 @@ C_SRC_DIR =	.
 ASM_SRC_DIR = .
 LDS_SRC_DIR = . 
 RESULT_DIR = .
-MEM_SIZE = 128
+MEM_SIZE = 256
 
 all: $(RESULT_DIR)/firmware.hex $(RESULT_DIR)/dumpfile
 
