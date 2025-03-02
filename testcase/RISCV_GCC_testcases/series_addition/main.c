@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define LEDS_START_ADDR 2000
+#define LEDS_START_ADDR 1000
 #define LEDS_DATA_REG_OFFSET 0
 #define LEDS_DATA_REG *((volatile unsigned int *)(LEDS_START_ADDR + LEDS_DATA_REG_OFFSET))
 
