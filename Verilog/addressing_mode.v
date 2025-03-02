@@ -33,8 +33,11 @@ case(opcode)
 7'b0000000: mode = 0;
 //JALR
 7'b1100111: mode = 10;
+//EBREAK
+7'h73:	mode = 11;
 
 default: mode = 9;
 endcase
 end
 endmodule
+
