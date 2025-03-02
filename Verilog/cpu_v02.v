@@ -1,26 +1,48 @@
+/*
+Copyright (c) 2024-2025 Subir Maity
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 `include "addressing_mode.v" //delete this line for FPGA implementation(it will be included by default)
 
 //*** Version-3 of KRV-32 ***//
 // ** Attempt to make the code compatible with GCC RISC-V compiler ***//
-//** Program memory space 0-127
-// Data memory and IO space  starts from Addr 2000.
-// LED port connected to ADDR = 2000-2003
+//** Program memory space 0-255
+// Data memory and IO space  start from Addr 1000.
+// LED port connected to ADDR = 1000-1003
 
 module cpu(
     input rst, clk,
     output reg cpu_busy,
     output [5:0] LEDS
   );
-  parameter SIZE = 128; //program memory size
-  parameter DATA_OFFSET = 2000; //data mem location starts in address space 2000
-  reg [7:0] ram [0:SIZE-1]; //program memory 
-  reg [7:0] datamem [0:31];//data and IO memory 
+  parameter SIZE = 256; //program memory size
+  parameter LED_PORT = 3;
+  parameter OFFSET_ADDR = 1000; //data memory offset address location
+  reg [7:0] ram [0:SIZE-1]; //program memory
+  reg [7:0] datamem [0:63];//data and IO memory
   reg [31:0] regfile[0:15];//Register file with X0 to X15;
   reg [31:0] addr; //address bus
   reg [31:0] data; //data bus
   reg en, alu_en; //ALU control signal
   reg [3:0] state; //state register
-  parameter RESET=0, FETCH=1, DECODE=2, REG_RD=3, ALU=4, PC_UPDATE=5, REG_WR=6, BRANCHING=7, JUMPING=8, LUI=9, AUIPC=10; //Different states
+  parameter RESET=0, FETCH=1, DECODE=2, REG_RD=3, ALU=4, PC_UPDATE=5, REG_WR=6, BRANCHING=7, JAL=8, LUI=9, AUIPC=10, JALR=11,HLT=12; //Different states
   wire [3:0] mode; //addressing mode finder
   reg [4:0] rd,rs1, rs2; //reg to find source and dest reg number
   reg [2:0] funct3; //funct3 (see Risc-V manual)
@@ -31,9 +53,10 @@ module cpu(
   initial
   begin
     ram[0]=32'h0;
-      $readmemh("firmware.txt", ram);
+    $readmemh("code1.txt", ram);
     state=0;
     en=0;
+    // divclk=0;
     addr = 0;
     regfile[0]=32'h0;//X0 reg is always set to hardware 0
     regfile[1]=32'h0;
@@ -52,19 +75,26 @@ module cpu(
     regfile[14]=32'h0;
     regfile[15]=32'h0;
   end
-  //Instantiate sub modules
+  //Instantiate submodules
   addressing_mode mode_finder(data[6:0],mode);
-    //***Assign LED ports to datamem location 3 (last 6 bit)for six LED on Tang-9 FPGA
+  
+//*** Assign GPIO port with data registers *** //
+  assign LEDS = ~(datamem[LED_PORT][5:0]); //LEDS are connected to datamem[3]
 
-  assign LEDS = ~(datamem[3][5:0]); //LEDS are connected to datamem[3]
+  // ---------------------------------------------------------------------//
+  // *** Implementation of clock divider to get a 10MHz clock from 25MHz *** //
+  //Approx divided by two
+  /*
+  always @(posedge clk) begin
+  divclk <= ~divclk;
+  end
+  */
 
-// ---------------------------------------------------------------------//
-
-  //**** clock dependent operation Main State machine for CPU starts from here **** //
+  //clock dependent operation
 
   always @(posedge clk)
   begin
-      if(!rst) //we have a neg reset in FPGA board
+    if(!rst)
     begin
       addr <= 0;
       state <= RESET;
@@ -79,8 +109,12 @@ module cpu(
         else
           state <= FETCH;
       end
+      HLT: //stop execution (EBREAK)
+      begin
+        state <= HLT;
+      end
 
-        FETCH: //Fetch data from progmem memory (RAM)
+      FETCH: //Fetch data from progmem RAM
       begin
         data[31:24] <= ram[addr];
         data[23:16] <= ram[addr+1];
@@ -88,7 +122,7 @@ module cpu(
         data[7:0] <= ram[addr+3];
         state <= DECODE;
       end
-      DECODE: //Decoding of different instruction and generating signal
+      DECODE: //Decoding of different instructions and generate signal
       begin
         cpu_busy <= 1;
         case(mode)
@@ -112,18 +146,21 @@ module cpu(
           end
           3: //Load type instruction
           begin
+            //$display("Not implemented");
             rs1 <= data[19:15];
             rd <= data[11:7];
-            data_rs2 <=data[31]?{20'hfffff, data[31:20]} - DATA_OFFSET :{20'h0, data[31:20]}-DATA_OFFSET;
+            data_rs2 <=data[31]?  {20'hfffff, data[31:20]} - OFFSET_ADDR : {20'h0, data[31:20]} - OFFSET_ADDR;
             funct3 <= data[14:12];
             state <= REG_WR;
           end
           4: //store type instruction
           begin
+            // $display("Not implemented");
             rs1 <= data[19:15];
             rs2 <= data[24:20];
             funct3 <= data[14:12];
-            data_rs2 <=data[31]?{20'hfffff, data[31:25],data[11:7]}-DATA_OFFSET:{20'h0, data[31:25],data[11:7]}-DATA_OFFSET;
+            //data_rs1 <= regfile[rs1];
+            data_rs2 <=data[31]? ({20'hfffff, data[31:25],data[11:7]} - OFFSET_ADDR): ({20'h0, data[31:25],data[11:7]} - OFFSET_ADDR);
             state <= REG_WR;
 
           end
@@ -138,13 +175,13 @@ module cpu(
             state <= BRANCHING;
           end
 
-          6: //for jump
+          6: //for JAL
           begin
             data_rs2 <= (data[31])?{11'h7ff,data[31],data[19:12],data[20],data[30:21],1'b0}:{11'h000,data[31],data[19:12],data[20],data[30:21],1'b0};
             funct3 <= data[14:12];
             rs1 <= data[19:15];
             rd <= data[11:7];
-            state <= JUMPING;
+            state <= JAL;
           end
 
           7: //LUI
@@ -161,6 +198,17 @@ module cpu(
             data_rs2[19:0] <= 3'h0;
             state <= AUIPC;
           end
+          10://JALR
+          begin
+            data_rs2 <=data[31]?{20'hfffff, data[31:20]}:{20'h0, data[31:20]};
+            rd <= data[11:7];
+            rs1 <= data[19:15];
+            state <= JALR;
+          end
+          11:
+          begin
+            state <= HLT;
+          end
           default:
             state <= PC_UPDATE;
         endcase
@@ -174,7 +222,7 @@ module cpu(
         state <= ALU;
       end
 
-      ALU: //perform ALU operation followed by store result into regfile
+      ALU: //perform ALU operation follwed by store result into regfile
       begin
         if(alu_en)
         begin
@@ -184,7 +232,7 @@ module cpu(
             7'b0100000:
               regfile[rd] <= data_rs1 - data_rs2; // subtract
             7'b0000111:
-              regfile[rd] <= data_rs1 & data_rs2; //logical AND 
+              regfile[rd] <= data_rs1 & data_rs2; //logical AND
             7'b0000110:
               regfile[rd] <= data_rs1 | data_rs2; //logical OR
             7'b0000100:
@@ -198,20 +246,21 @@ module cpu(
             7'b0000011:
               regfile[rd] <= (data_rs1 < {20'h0,data_rs2[31:20]})? 1:0; //SLTIU
           endcase
-          
+          // $display(regfile[rd]);
         end
         else
           regfile[rd] <= 32'bx;
 
         state <= PC_UPDATE;
       end
-      PC_UPDATE: //update the program counter and decide to pick up next instruction
+      PC_UPDATE: //update the program counter and decide to pickup next instruction
       begin
         addr <= (mode!=9)?(addr + 4):0;
         state <= FETCH;
         cpu_busy <= 0;
       end
 
+     
       REG_WR: //register or mem write for special op such as load
       begin
 
@@ -219,53 +268,55 @@ module cpu(
         begin //for Load type instruction
           case(funct3)
             3'b000://LB
-              regfile[rd] <= {6'h0, datamem[regfile[rs1] + data_rs2]};
+              regfile[rd] <= {6'h0, datamem[regfile[rs1]+data_rs2]};
 
             3'b001://LH
-              regfile[rd] <= {4'h0, datamem[regfile[rs1] + data_rs2],datamem[regfile[rs1] + data_rs2+1]};
+              regfile[rd] <= {4'h0, datamem[regfile[rs1]+data_rs2],datamem[regfile[rs1]+data_rs2+1]};
 
             3'b010://LW
-              regfile[rd] <= {datamem[regfile[rs1] + data_rs2],datamem[regfile[rs1] + data_rs2+1],datamem[regfile[rs1] + data_rs2+2],datamem[regfile[rs1] + data_rs2+3]};
+              regfile[rd] <= {datamem[regfile[rs1]+data_rs2],datamem[regfile[rs1]+data_rs2+1],datamem[regfile[rs1]+data_rs2+2],datamem[regfile[rs1]+data_rs2+3]};
 
-           // 3'b100://LBU
-
-            //  $display("Not implemented");
-           // 3'b101://LHU
+            // 3'b100://LBU
 
             //  $display("Not implemented");
-           // default:
+            // 3'b101://LHU
+
+            //  $display("Not implemented");
+            // default:
             //  $display("Not implemented");
           endcase
         end
+
         if(mode==4)
         begin //store type instruction
 
           case(funct3)
             3'b000: //store byte
             begin
-              datamem[regfile[rs1] + data_rs2 + 3] <= regfile[rs2][7:0];
-              datamem[regfile[rs1] + data_rs2 + 2] <= 8'h0;
-              datamem[regfile[rs1] + data_rs2 + 1] <= 8'h0;
-              datamem[regfile[rs1] + data_rs2 ] <= 8'h0;
+              datamem[regfile[rs1]+data_rs2 + 3] <= regfile[rs2][7:0];
+              datamem[regfile[rs1]+data_rs2 + 2] <= 8'h0;
+              datamem[regfile[rs1]+data_rs2 + 1] <= 8'h0;
+              datamem[regfile[rs1]+data_rs2] <= 8'h0;
             end
             3'b001: //store half
             begin
-              datamem[regfile[rs1] + data_rs2 + 3] <= regfile[rs2][7:0];
-              datamem[regfile[rs1] + data_rs2 + 2] <= regfile[rs2][15:8];
-              datamem[regfile[rs1] + data_rs2 + 1] <= 8'h0;
-              datamem[regfile[rs1] + data_rs2 ] <= 8'h0;
-            end
+              datamem[regfile[rs1]+data_rs2 + 3] <= regfile[rs2][7:0];
+              datamem[regfile[rs1]+data_rs2 + 2] <= regfile[rs2][15:8];
+              datamem[regfile[rs1]+data_rs2 + 1] <= 8'h0;
+              datamem[regfile[rs1]+data_rs2] <= 8'h0;
+            end 
             3'b010: //store word
             begin
-              datamem[regfile[rs1] + data_rs2 + 3] <= regfile[rs2][7:0];
-              datamem[regfile[rs1] + data_rs2 + 2] <= regfile[rs2][15:8];
-              datamem[regfile[rs1] + data_rs2 + 1] <= regfile[rs2][23:16];
-              datamem[regfile[rs1] + data_rs2 ] <= regfile[rs2][31:24];
-              
+              datamem[regfile[rs1]+data_rs2 + 3] <= regfile[rs2][7:0];
+              datamem[regfile[rs1]+data_rs2 + 2] <= regfile[rs2][15:8];
+              datamem[regfile[rs1]+data_rs2 + 1] <= regfile[rs2][23:16];
+              datamem[regfile[rs1]+data_rs2] <= regfile[rs2][31:24];
+              //$display(datamem[16]);
             end
 
           endcase
         end
+
         state <= PC_UPDATE;
 
       end
@@ -288,11 +339,10 @@ module cpu(
         state <= FETCH;
       end
 
-      JUMPING: //for Jump instructions
+      JAL: //for Jump instructions
       begin
-          regfile[rd] <= (rd==0)?0:(addr + 4); //rd=PC+4; //changes for x0 to include j instruction in compiler
-        addr <= (mode==6)? (addr + data_rs2):((mode==10)?(regfile[rs1]+data_rs2):addr); //PC=PC+imm for jal, PC=rs1+imm for jalr
-
+        regfile[rd] <= (rd==0)?0:(addr + 4); //rd=PC+4; //change for x0 to include j instruction in compiler
+        addr <= addr + data_rs2; //PC=PC+imm for jal
         state <=FETCH;
       end
 
@@ -307,9 +357,12 @@ module cpu(
         regfile[rd] <= addr + data_rs2;
         state <= PC_UPDATE;
       end
+      JALR:
+      begin
+        regfile[rd] <= (rd==0)?0:(addr + 4); //rd=PC+4; //change for x0 to include j instruction in compiler
+        addr <= regfile[rs1]+data_rs2; // PC=rs1+imm for jalr
+        state <=FETCH;
+      end
     endcase
   end
-
-
-
 endmodule
