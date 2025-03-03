@@ -1,0 +1,1 @@
+in Verilog RTL code change the datamem size from [0:63] to [0:127]
