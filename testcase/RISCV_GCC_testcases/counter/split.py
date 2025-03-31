@@ -50,4 +50,4 @@ output_filename = "firmware.txt"
 
 split_32bit_to_8bit(input_filename, output_filename)
 
-print(f"Data split and written to '{output_filename}'.")
+#print(f"Data split and written to '{output_filename}'.")
