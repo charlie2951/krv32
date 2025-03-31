@@ -113,7 +113,7 @@ Open a test editor and add the following piece of code. Save the code as *main.c
 #include <stdint.h>
 #include <stdlib.h>
 
-#define LEDS_START_ADDR 1000
+#define LEDS_START_ADDR 0x10000000
 #define LEDS_DATA_REG_OFFSET 0
 #define LEDS_DATA_REG *((volatile unsigned int *)(LEDS_START_ADDR + LEDS_DATA_REG_OFFSET))
 
