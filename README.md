@@ -44,40 +44,26 @@ FETCH:
 ```
 *DECODE:* The decoding of instruction takes place in this state. A separate mode detector module is attached to decide the addressing mode.
 ```verilog
-module addressing_mode
-(
-	input [6:0] opcode,
-	output reg [3:0] mode
-);
-
-always @(opcode)
-begin
-case(opcode)
-//R type
-7'b0110011: mode = 1;
-//I-type
-7'b0010011: mode = 2;
-//Load instruction
-7'b0000011: mode = 3;
-//Store
-7'b0100011: mode = 4;
-//Branch
-7'b1100011: mode = 5;
-//Jump
-7'b1101111: mode = 6;
-//LUI 
-7'b0110111: mode = 7;
-//AUIPC
-7'b0010111: mode = 8;
-//Reset
-7'b0000000: mode = 0;
-//JALR
-7'b1100111: mode = 10;
-
-default: mode = 9;
-endcase
-end
-endmodule
+ wire [4:0] opcode = data[6:2];
+  wire [4:0] rd = data[11:7];
+  wire [2:0] funct3 = data[14:12];
+  wire [6:0] funct7 = data[31:25];
+  wire [31:0] I_data = {{21{data[31]}},data[30:20]}; //sign extended data
+  wire [31:0] B_data = {{20{data[31]}},data[7],data[30:25],data[11:8],1'b0}; //sign extended branch data
+  wire [31:0] S_data = {{21{data[31]}},data[30:25],data[11:7]};//sign extended imm data for S-type
+  wire [31:0] J_data = {{12{data[31]}},data[19:12],data[20],data[30:21],1'b0};//sign extended jump data
+  wire [31:0] U_data = {data[31],data[30:12],12'h000};//LUI, AUIPC , 12 bit shifted imm data
+  // check whether opcode is for R type or I type  or B-type
+  wire isRtype = (opcode == 5'b01100);
+  wire isItype = (opcode == 5'b00100);
+  wire isBtype = (opcode == 5'b11000);
+  wire isSystype = (opcode == 5'b11100);
+  wire isStype = (opcode == 5'b01000);
+  wire isLtype = (opcode == 5'b00000);
+  wire isJAL   = (opcode == 5'b11011);
+  wire isJALR  = (opcode == 5'b11001);
+  wire isLUI = (opcode == 5'b01101);
+  wire isAUIPC = (opcode == 5'b00101);
 ```
 Then the corresponding control and status signal is generated depending upon the addressing mode (R-type, I-type, branch, Jump etc). See Verilog file for details. <p>
 *REG_RD:* The register read state reads the source register's content and also immediate data for (I-type) mode. <p>
