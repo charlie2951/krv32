@@ -1,0 +1,25 @@
+
+firmware.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <start>:
+   0:	40000113          	li	sp,1024
+   4:	008000ef          	jal	c <main>
+   8:	00100073          	ebreak
+
+0000000c <main>:
+   c:	100007b7          	lui	a5,0x10000
+  10:	0007a023          	sw	zero,0(a5) # 10000000 <MEM_SIZE+0xffffc00>
+  14:	00000693          	li	a3,0
+  18:	00100793          	li	a5,1
+  1c:	00c0006f          	j	28 <main+0x1c>
+  20:	00f686b3          	add	a3,a3,a5
+  24:	00178793          	addi	a5,a5,1
+  28:	00a00713          	li	a4,10
+  2c:	fef75ae3          	bge	a4,a5,20 <main+0x14>
+  30:	100007b7          	lui	a5,0x10000
+  34:	00d7a023          	sw	a3,0(a5) # 10000000 <MEM_SIZE+0xffffc00>
+  38:	00000513          	li	a0,0
+  3c:	00008067          	ret
