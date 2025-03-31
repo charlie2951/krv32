@@ -147,7 +147,6 @@ A dedicated makefile is provided (inside testcase located at (testcase/RISCV_GCC
 ```shell
 make clean
 make
-python3 split.py
 ```
 Copy the content of the generated firmware.txt file (you may exclude zeros) into your FPGA's firmware.txt and run the FPGA design flow or simulate it for debugging. You may open the *dumpfile* in text editor to see the generated assembly code from C code. This is useful for debugging. <p>
 
