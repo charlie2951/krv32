@@ -5,11 +5,12 @@
 
 module top_test;
   reg rst, clk;
-  wire cpu_busy;
-  wire [5:0] LEDS;
+  wire [9:0] cycle;
+  wire [5:0] leds;
   integer i;
+  parameter data_loc = 32; //if you want to see mem data for load/store
   //instantiate DUT
-  cpu cpuv02 (rst, clk, cpu_busy,LEDS);
+  cpu cpuv02 (rst, clk, cycle, leds);
   initial
   begin
     $dumpfile("top.vcd");
@@ -18,31 +19,24 @@ module top_test;
     clk=0;
     #50;
     rst=1;
-    #60000;
-   
-    //$monitor("LED status: %0b", LEDS);
+    #90000;
+/*
     //Print register content
-    //$display("*** Printing register content ***");
-    //$display("X[0](zero) = %0d ",$signed(cpuv02.regfile[0]));
-    //$display("X[2](sp) = %0d ",$signed(cpuv02.regfile[2]));
-    //$display("X[14](a4) = %0d ",$signed(cpuv02.regfile[14]));
-    //$display("X[15](a5) = %0d ",$signed(cpuv02.regfile[15]));
-    //for(i=0; i<16; i=i+1)
-      //$display("X[%0d] = %0d ",i,$signed(cpuv02.regfile[i]));
-     // $display("Printing data memory");
-     //$display("datamem(23)=%0d",cpuv02.datamem[23]);
-    //$display("datamem(17)=%0d",cpuv02.datamem[17]);
-    //$display("datamem(18)=%0d",cpuv02.datamem[18]);
-   // $display("datamem(19)=%0d",cpuv02.datamem[19]);
+    $display("*** Printing register content ***");
+    for(i=0; i<16; i=i+1)
+      $display("X[%0d] = %0d ",i,$signed(cpuv02.regfile[i]));
+    $display("Clock cycle=%0d", cycle);
+    //$display("Data at loc %0d : %0d ",data_loc,$signed({cpuv02.ram[data_loc],cpuv02.ram[data_loc+1],cpuv02.ram[data_loc+2],cpuv02.ram[data_loc+3]}));
+      $display("LED value is: %6b", leds);
+    */
     $finish;
   end
-
-  always #2 clk=~clk;
-
   
   initial begin
-    $monitor("Time=%0d, Addr=%0h, Data=%0h, zero=%0d, sp=%0d, a4=%0d, a5=%0d, LEDS=%0b",$time,cpuv02.addr, cpuv02.data,cpuv02.regfile[0],cpuv02.regfile[2],cpuv02.regfile[14],cpuv02.regfile[15], LEDS);
-   
-  end
+    $monitor("LED value is: %6b", leds);
+   end
+  //*/
+  always #2 clk=~clk;
 endmodule
+
 
