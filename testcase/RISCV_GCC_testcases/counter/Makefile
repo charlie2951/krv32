@@ -6,12 +6,16 @@ C_SRC_DIR =	.
 ASM_SRC_DIR = .
 LDS_SRC_DIR = . 
 RESULT_DIR = .
-MEM_SIZE = 256
+MEM_SIZE = 1024
 
-all: $(RESULT_DIR)/firmware.hex $(RESULT_DIR)/dumpfile
+all: $(RESULT_DIR)/firmware.hex $(RESULT_DIR)/dumpfile $(RESULT_DIR)/firmware.txt
 
 $(RESULT_DIR)/firmware.hex: $(RESULT_DIR)/firmware.bin makehex.py
 	python3 makehex.py $< $(MEM_SIZE) > $@
+
+$(RESULT_DIR)/firmware.txt: $(RESULT_DIR)/firmware.hex split.py
+	python3 split.py $< $(MEM_SIZE) > $@
+
 
 $(RESULT_DIR)/firmware.bin: $(C_SRC_DIR)/firmware.elf
 	$(OBJ_COPY) -O binary $< $@
