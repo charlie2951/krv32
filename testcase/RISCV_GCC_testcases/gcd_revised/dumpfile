@@ -1,0 +1,45 @@
+
+firmware.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <start>:
+   0:	40000113          	li	sp,1024
+   4:	04c000ef          	jal	50 <main>
+   8:	00100073          	ebreak
+
+0000000c <gcd>:
+   c:	02050c63          	beqz	a0,44 <gcd+0x38>
+  10:	02058e63          	beqz	a1,4c <gcd+0x40>
+  14:	02b50c63          	beq	a0,a1,4c <gcd+0x40>
+  18:	ff010113          	addi	sp,sp,-16
+  1c:	00112623          	sw	ra,12(sp)
+  20:	00a5cc63          	blt	a1,a0,38 <gcd+0x2c>
+  24:	40a585b3          	sub	a1,a1,a0
+  28:	fe5ff0ef          	jal	c <gcd>
+  2c:	00c12083          	lw	ra,12(sp)
+  30:	01010113          	addi	sp,sp,16
+  34:	00008067          	ret
+  38:	40b50533          	sub	a0,a0,a1
+  3c:	fd1ff0ef          	jal	c <gcd>
+  40:	fedff06f          	j	2c <gcd+0x20>
+  44:	00058513          	mv	a0,a1
+  48:	00008067          	ret
+  4c:	00008067          	ret
+
+00000050 <main>:
+  50:	ff010113          	addi	sp,sp,-16
+  54:	00112623          	sw	ra,12(sp)
+  58:	00812423          	sw	s0,8(sp)
+  5c:	10000437          	lui	s0,0x10000
+  60:	00042023          	sw	zero,0(s0) # 10000000 <MEM_SIZE+0xffffc00>
+  64:	03800593          	li	a1,56
+  68:	06200513          	li	a0,98
+  6c:	fa1ff0ef          	jal	c <gcd>
+  70:	00a42023          	sw	a0,0(s0)
+  74:	00000513          	li	a0,0
+  78:	00c12083          	lw	ra,12(sp)
+  7c:	00812403          	lw	s0,8(sp)
+  80:	01010113          	addi	sp,sp,16
+  84:	00008067          	ret
