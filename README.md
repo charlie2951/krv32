@@ -147,6 +147,9 @@ Copy the content of the generated firmware.txt file (you may exclude zeros) into
 
 ## Schematic of GOWIN Tang 9k FPGA
 ![image](https://github.com/user-attachments/assets/23155624-dbff-4b06-b6cf-676d198d0315)
+## FPGA Implementation Examples
+Go through the ***fpga*** directory to explore the compiled and implemented project in Tang9K FPGA from GOWIN. Note that: Tang9k uses active low reset. Also LED port is 6 bit. So there are minor changes in reset logic (!rst instead of rst) and top module (top.v).
+
 ## Revision Note
 Version-2 is more hardware efficient in terms of FPGA resources. V1.0 consumes 34% LUT, V2 takes only 14%. Program memory is isolated from cpu core to bring more flexibility. GPIO logic is also isolated and implemented at top.v file (top module).
 
