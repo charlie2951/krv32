@@ -13,12 +13,14 @@ Refer to the RiSC-V official page and/or other tutorials. Some useful links are 
 
 **Debugging and Simulation** <p>
 For debugging and behavioral simulation, use any Verilog compiler. I have used open-source Icarus Verilog with GTKWave waveform viewer. A sample testbench is added for debugging and test purposes. Modify the testbench as per your requirements.<p>
-*Program Memory space*: Default is 256 byte. Each location will contain 8-bit data. However, you can change it in code. Verilog Implementation: *reg[7:0] ram[0:255]* <p>
-*Data and I/O memory address space* By default 64 byte. Each location will contain 8-bit data. Verilog implementation: *reg[7:0] datamem [0:63]* <p>
-I/O and data memory offset address start from 1000. However, while using data memory for load and store instructions and I/O operations in RTL code, it uses datamem starting from the 0th location. <p>
-Note: Data memory location 0 to 3 i.e. 1000 to 1003 is used for output. 1003 is mapped to six onboard LEDs in Gowin Semiconductor's Sipeed Tang-9 series FPGA board.<p>
+*Program Memory space*: Default is 1Kbyte. Each location will contain 32-bit data. However, you can change it in code. Verilog Implementation: *reg[31:0] ram[0:1023]* <p>
+GPIO  addresses start from 0x10000000. See top modules in Verilog (top.v) for detailed mapping.  <p>
+**GPIO Mapping** <p>
+0x10000000 - 0x10000003 : LED (D0 to D5 of 0x10000003)
+0x10000004 - 0x10000007: UART (planned)
+LED GPIO  is mapped to six onboard active low enabled LEDs in Gowin Semiconductor's Sipeed Tang-9 series FPGA board.<p>
   **FPGA Implementation**
-The 1st version is implemented in Tang 9K series FPGA with a clock speed of 27 MHz. <p>
+Synthesized and implemented in Tang 9K series FPGA with a clock speed of 27 MHz. <p>
 
 *Pin Assignment of FPGA*
 
@@ -28,19 +30,17 @@ The 1st version is implemented in Tang 9K series FPGA with a clock speed of 27 M
 ![image](https://github.com/user-attachments/assets/bd8db6f2-b492-446d-97b7-45cee75a54ea)
 
 **Flowchart** <p>
-The CPU is implemented in a straightforward way by keeping the code simple and understandable. Further optimization may be done to save hardware sources and speed. In this implementation, a multi-clock cycle is required to execute a single instruction. Currently, the R-type (ADD, SUB, AND, OR etc) and Immediate instructions (I-type) instructions (ADDI, ANDI, ORI, etc) consume 5 clock cycles, Load and store type instructions take 4 cycles, Branch and Jump instructions take 3 cycles, and others (LUI, AUIPC) take 4 cycles. Pipelining may be implemented in the future to speed up the execution. <p>
+The CPU is implemented in a straightforward way by keeping the code simple and understandable. Further optimization may be done to save hardware resources and speed. In this implementation, a multi-clock cycle is required to execute a single instruction. Currently, the R-type (ADD, SUB, AND, OR etc) and Immediate instructions (I-type) instructions (ADDI, ANDI, ORI, etc) consume 5 clock cycles, Load and store type instructions take 9 cycles, Branch and Jump instructions take 3 cycles, and others (LUI, AUIPC) take 4 cycles. Pipelining may be implemented in the future to speed up the execution. <p>
 **Execution Flow in the State machine** <p>
 The initial state is *RESET* state. After that the control goes to *FETCH* state.<p>
 *FETCH:* The 32-bit instruction code is loaded from the program memory into 32 bit instruction register named data <p>
 ```verilog
-FETCH: 
+FETCH: //Fetch data from progmem RAM
       begin
-        data[31:24] <= ram[addr];
-        data[23:16] <= ram[addr+1];
-        data[15:8] <= ram[addr+2];
-        data[7:0] <= ram[addr+3];
+        data <= mem_rdata; //latch mem read data into reg
         state <= DECODE;
       end
+
 ```
 *DECODE:* The decoding of instruction takes place in this state. A separate mode detector module is attached to decide the addressing mode.
 ```verilog
