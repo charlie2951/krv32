@@ -22,7 +22,6 @@ module cpu(
   reg [31:0] regfile[0:31];//Register file with X0 to X31;
   reg [31:0] addr, data_rs1, data_rs2; //address bus
   reg [31:0] data; //data bus
-  reg [31:0] load_data_tmp;
   reg [3:0] state; //state register
   parameter RESET=0, FETCH=1, DECODE=2, EXECUTE=3, HLT=4,BYTE1=5, BYTE2=6, BYTE3=7, BYTE4=8, WAIT=9, WAIT_LOADING=10; //Different states
   //********* Decoding of Instructions*******//
@@ -123,7 +122,12 @@ module cpu(
   wire [31:0] SW_data = {byte1_data, byte2_data, byte3_data,byte4_data};
 
   assign mem_wdata = (funct3[1] & load_store_state_flag)? SW_data : (|funct3[1] & load_store_state_flag) ? SH_data : SB_data;
-  initial
+  //get data from data bus for LOAD instruction
+  wire [31:0] load_data_tmp =  (isLtype & funct3[1] & (state==BYTE1)) ? mem_rdata: //load word LW
+  ((funct3[0]) & isLtype & (state==BYTE1)) ? {16'h0, mem_rdata[15:0]} : //load half-word LH
+    {24'h0, mem_rdata[7:0]};//LB-load byte
+
+initial
   begin
     state=0;
     addr = 0;
@@ -150,12 +154,9 @@ module cpu(
         else
           state <= WAIT;
       end
-      WAIT:
-      begin//this state provides 1 cycle delay to fetch data from progmem
-        state <= FETCH;
-        //loc <= 0; //reset the loc to point 1st mem location
-      end
-
+      WAIT: //this state provides 1 cycle delay to fetch data from progmem
+         state <= FETCH;
+           
       FETCH: //Fetch data from progmem RAM
       begin
         data <= mem_rdata; //latch mem read data into reg
@@ -177,12 +178,8 @@ module cpu(
       end
 
       BYTE1://state value is 5
-      begin
-        load_data_tmp <=  (isLtype && funct3[1]) ? mem_rdata: //load word LW
-          ((funct3[0]) && isLtype) ? {16'h0, mem_rdata[15:0]} : //load half-word LH
-            {24'h0, mem_rdata[7:0]};//LB-load byte
-        state <= BYTE2;
-      end
+              state <= BYTE2;
+      
 
       BYTE2://state reg value 6
         state <= BYTE3;
