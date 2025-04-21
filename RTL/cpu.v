@@ -123,8 +123,8 @@ module cpu(
 
   assign mem_wdata = (funct3[1] & load_store_state_flag)? SW_data : (|funct3[1] & load_store_state_flag) ? SH_data : SB_data;
   //get data from data bus for LOAD instruction
-  wire [31:0] load_data_tmp =  (isLtype & funct3[1] & (state==BYTE1)) ? mem_rdata: //load word LW
-  ((funct3[0]) & isLtype & (state==BYTE1)) ? {16'h0, mem_rdata[15:0]} : //load half-word LH
+  wire [31:0] load_data_tmp =  (isLtype & funct3[1]) ? mem_rdata: //load word LW
+  ((funct3[0]) & isLtype) ? {16'h0, mem_rdata[15:0]} : //load half-word LH
     {24'h0, mem_rdata[7:0]};//LB-load byte
 
 initial
