@@ -154,4 +154,4 @@ Go through the ***fpga*** directory to explore the compiled and implemented proj
 Version-2 is more hardware efficient in terms of FPGA resources. V1.0 consumes 34% LUT, V2 takes only 14%. Program memory is isolated from cpu core to bring more flexibility. GPIO logic is also isolated and implemented at top.v file (top module).
 
 ***Known issues/bugs*** <p>
-Date: 16/04/2025: Bug: Arithmetic right shift SRA, SRAI not working, Note: LBU, LHU not implemented<p>
+Date: 16/04/2025: Bug: Arithmetic right shift SRA, SRAI not working, Note: LB, LBU, LH, LHU, SB, SH not implemented/having bug<p>
