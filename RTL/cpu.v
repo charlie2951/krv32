@@ -7,7 +7,8 @@ Load and store implemented
 Jump implementing
 Bug: Arithmetic right shift SRA, SRAI not working
 Revised on: 16/04/2025
-Note: LBU, LHU not implemented
+Note: Load Byte(LB, LBU), Load half word (LH, LHU) and (SB, SH) not implemented/ having bug
+It will be resolved in next release
 */
 module cpu(
     input rst, clk,
