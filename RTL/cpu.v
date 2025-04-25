@@ -1,4 +1,4 @@
-/* CPU Version 4.0
+/* CPU Version 4.1
 Verified for synthesis in FPGA
 FSM based design
 R-type, I type and Branch instr included
@@ -6,9 +6,11 @@ Shift operator implemented (SLL/SLLI, SRL/SRLI)
 Load and store implemented
 Jump implementing
 Bug: Arithmetic right shift SRA, SRAI not working
+Bug: LH, LB, SH, SB, LBU, LHU not working
 Revised on: 16/04/2025
-Note: Load Byte(LB, LBU), Load half word (LH, LHU) and (SB, SH) not implemented/ having bug
-It will be resolved in next release
+Bug fixed on 24/4/2025: LB, SB, LH, SH tested 
+LBU, LHU: implemented but not tested
+Reordering of state variable, No of state reduced
 */
 module cpu(
     input rst, clk,
@@ -23,8 +25,9 @@ module cpu(
   reg [31:0] regfile[0:31];//Register file with X0 to X31;
   reg [31:0] addr, data_rs1, data_rs2; //address bus
   reg [31:0] data; //data bus
+  // reg [31:0] load_data_tmp;
   reg [3:0] state; //state register
-  parameter RESET=0, FETCH=1, DECODE=2, EXECUTE=3, HLT=4,BYTE1=5, BYTE2=6, BYTE3=7, BYTE4=8, WAIT=9, WAIT_LOADING=10; //Different states
+  parameter RESET=0, WAIT=1, FETCH=2, DECODE=3, EXECUTE=4, BYTE=5, WAIT_LOADING=6, HLT=7; //Different states
   //********* Decoding of Instructions*******//
   wire [4:0] opcode = data[6:2];
   wire [4:0] rd = data[11:7];
@@ -96,39 +99,47 @@ module cpu(
   wire [31:0] alu_in2 = (isRtype | isBtype)? data_rs2 : (isItype | isLtype |isJALR)? I_data:S_data;//ALU req for comparison in Btype
   wire [31:0] pcplus4 = addr + 4;
   wire [31:0] pcplusimm = addr + (isBtype ? B_data: isJAL ? J_data:isAUIPC ? U_data: 0);
-
+  /* LOAD STORE OPERATION
+    Credit: FEMTORV32: https://github.com/BrunoLevy/learn-fpga/tree/master/FemtoRV*/
   //Generate memory read/write strobe signal and address -bug in address calculation
-  wire load_store_state_flag = ((state==BYTE1)|(state==BYTE2)|(state==BYTE3)|(state==BYTE4));
-
+  //wire load_store_state_flag = ((state==BYTE1)|(state==BYTE2)|(state==BYTE3)|(state==BYTE4));
+  wire load_store_state_flag = (state==BYTE);
   wire [31:0] load_store_addr = (load_store_state_flag |(state==WAIT_LOADING))?alu_result:0;
-  //Generate memory write strobe control signal
+  wire mem_byteAccess     = data[13:12] == 2'b00; // funct3[1:0] == 2'b00;
+  wire mem_halfwordAccess = data[13:12] == 2'b01; // funct3[1:0] == 2'b01;
+  // Load operation
+  wire LOAD_sign = !data[14] & (mem_byteAccess ? LOAD_byte[7] : LOAD_halfword[15]);
+  wire [31:0] load_data_tmp = mem_byteAccess ? {{24{LOAD_sign}},  LOAD_byte} :
+       mem_halfwordAccess ? {{16{LOAD_sign}}, LOAD_halfword} : mem_rdata ;
 
-  assign mem_wstrb[0] = isStype & (state==BYTE1);
-  assign mem_wstrb[1] = isStype & (state==BYTE2);
-  assign mem_wstrb[2] = isStype & (state==BYTE3);
-  assign mem_wstrb[3] = isStype & (state==BYTE4);
+  wire [15:0] LOAD_halfword = load_store_addr[1] ? mem_rdata[31:16] : mem_rdata[15:0];
 
+  wire  [7:0] LOAD_byte =
+        load_store_addr[0] ? LOAD_halfword[15:8] : LOAD_halfword[7:0];
+
+  // The mask for memory-write.
+
+  wire [3:0] STORE_wmask = mem_byteAccess ?  (load_store_addr[1] ?
+       (load_store_addr[0] ? 4'b1000 : 4'b0100) :
+       (load_store_addr[0] ? 4'b0010 : 4'b0001)) :
+       mem_halfwordAccess ? (load_store_addr[1] ? 4'b1100 : 4'b0011) : 4'b1111;
+
+  //verify this line wstrb
+  assign mem_wstrb = {4{(state==BYTE) & isStype}} & STORE_wmask;
 
   //Generate memory address for load or store operation
   assign mem_addr = ((isStype | isLtype) & (load_store_state_flag |(state==WAIT_LOADING))) ? load_store_addr: addr;//calculate address for instruction/data to be stored or fetched
   //Generate memory read strobe signal
   assign mem_rstrb = (state==WAIT) | (isLtype & load_store_state_flag);//need to be modified for load instr
-  //collect byte-wise data for storing
-  wire [7:0] byte1_data = funct3[1] ? data_rs2[31:24]:0;
-  wire [7:0] byte2_data = funct3[1] ? data_rs2[23:16]:0;
-  wire [7:0] byte3_data = |funct3[1] ? data_rs2[15:8]:0;
-  wire [7:0] byte4_data = data_rs2[7:0];
-  wire [31:0] SB_data = {24'h0,byte4_data};
-  wire [31:0] SH_data = {16'h0,byte3_data,byte4_data};
-  wire [31:0] SW_data = {byte1_data, byte2_data, byte3_data,byte4_data};
+  // STORE op mem_wdata calculation
+  assign mem_wdata[ 7: 0] = data_rs2[7:0];
+  assign mem_wdata[15: 8] = load_store_addr[0] ? data_rs2[7:0]  : data_rs2[15: 8];
+  assign mem_wdata[23:16] = load_store_addr[1] ? data_rs2[7:0]  : data_rs2[23:16];
+  assign mem_wdata[31:24] = load_store_addr[0] ? data_rs2[7:0]  :
+         load_store_addr[1] ? data_rs2[15:8] : data_rs2[31:24];
 
-  assign mem_wdata = (funct3[1] & load_store_state_flag)? SW_data : (|funct3[1] & load_store_state_flag) ? SH_data : SB_data;
-  //get data from data bus for LOAD instruction
-  wire [31:0] load_data_tmp =  (isLtype & funct3[1]) ? mem_rdata: //load word LW
-  ((funct3[0]) & isLtype) ? {16'h0, mem_rdata[15:0]} : //load half-word LH
-    {24'h0, mem_rdata[7:0]};//LB-load byte
 
-initial
+  initial
   begin
     state=0;
     addr = 0;
@@ -155,9 +166,12 @@ initial
         else
           state <= WAIT;
       end
-      WAIT: //this state provides 1 cycle delay to fetch data from progmem
-         state <= FETCH;
-           
+      WAIT:
+      begin//this state provides 1 cycle delay to fetch data from progmem
+        state <= FETCH;
+        //loc <= 0; //reset the loc to point 1st mem location
+      end
+
       FETCH: //Fetch data from progmem RAM
       begin
         data <= mem_rdata; //latch mem read data into reg
@@ -174,24 +188,15 @@ initial
       EXECUTE:
       begin
         addr <= (isBtype & TAKE_BRANCH)| isJAL ? pcplusimm : isJALR? alu_result: pcplus4;
-        state <= !(isStype|isLtype|isJAL|isJALR) ? WAIT: BYTE1;
+        state <= !(isStype|isLtype|isJAL|isJALR) ? WAIT: BYTE;
 
       end
 
-      BYTE1://state value is 5
-              state <= BYTE2;
-      
-
-      BYTE2://state reg value 6
-        state <= BYTE3;
-
-      BYTE3://state reg value is 7
-        state <= BYTE4;
-
-      BYTE4://state reg val is 8
+      BYTE://state value is 5
+      begin
+        //give one intermediate clock delay
         state <= WAIT_LOADING;
-
-
+      end
       WAIT_LOADING:
         state <= WAIT;
 
