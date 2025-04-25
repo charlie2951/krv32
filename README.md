@@ -77,19 +77,19 @@ Other states are LUI and AUIPC to implement the corresponding instructions. <p>
 ## Steps for Generating HEX code from assembly language
 Use any RISC-V assembler to convert your assembly code into Hex dump. One of such online assembler can be found here https://riscvasm.lucasteske.dev/  . Copy the code hex dump, and paste it inside firmware.hex file in Verilog directory. Then run simulation. You can use any other assembler such as RISC-V toolchain etc.
 ## Steps for Generating Hex code from RISC-V C code
-1. Install prerequisite for Ubuntu
+1. Install prerequisites for Ubuntu
 ```
 $ sudo apt-get install autoconf automake autotools-dev curl python3 python3-pip python3-tomli libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev ninja-build git cmake libglib2.0-dev libslirp-dev
 ```
-2. Install RISC-V gcc toolchain. You need a Linux PC or in Windows, Windows subsystem for linux with Ubuntu support. Follow the steps to install the toolchain <p>
-Clone the official Risc-V gnu toolchain and compile for 32-bit arch with ilp32 option (RV32I) without multiplication support that we have implemented into FPGA.
+2. Install RISC-V gcc toolchain. You need a Linux PC or Windows, Windows Subsystem for Linux with Ubuntu support. Follow the steps to install the toolchain <p>
+Clone the official RISC-V GNU toolchain and compile for 32-bit arch with ILP32 option (RV32I) without the multiplication support that we have implemented into FPGA.
 ```
 $ git clone https://github.com/riscv/riscv-gnu-toolchain
 ./configure --prefix=/opt/riscv --with-arch=rv32i --with-abi=ilp32
 make linux
 ```
-Make sure that */opt/riscv* path having rw access. Otherwise change it to your preferred path. <p>
-To compile toolchain for multilib support (both 32 bit and 64 bit), use the following <p>
+Make sure that */opt/riscv* path has rw access. Otherwise, change it to your preferred path. <p>
+To compile a toolchain for multilib support (both 32-bit and 64-bit), use the following <p>
 ```
 ./configure --prefix=/opt/riscv --enable-multilib
 make linux
@@ -128,7 +128,7 @@ int main(void)
 }
 
 ```
-Here #define LEDS_START_ADDR 0x10000000 point to the location where LED ports are connected (2000-2003). Initially, LEDS_DATA_REG = 0b000000 i.e. all LEDS are off. Then two nested for loops are provided to include delay so that changes can be observed in the  eye. The while(1) provides an infinite loop which is common for any embedded CPU. Once all LEDS are ON i.e. count=63, then the counter will be cleared and again it will start counting from the beginning. <p>
+Here #define LEDS_START_ADDR 0x10000000 points to the location where LED ports are connected (2000-2003). Initially, LEDS_DATA_REG = 0b000000, i.e., all LEDS are off. The,n two nested for loops are provided to include a delay so that changes can be observed in the  eye. The while(1) provides an infinite loop, which is common for any embedded CPU. Once all LEDS are ON i.e., count=63, then the counter will be cleared and again it will start counting from the beginning. <p>
 
 ***Compiling the source code*** <p>
 A dedicated makefile is provided (inside testcase located at (testcase/RISCV_GCC_testcases/counter/Makefile) to automate the task. Execute the following commands serially to generate the hex code with an 8-bit chunk. Note: if you are using 32-bit toolchain without multilib support then replace the *riscv64*  keyword by using *riscv32* and also check the GCC toolchain path mentioned in the Makefile. In my case, it is *RISCV_TOOLCHAIN_DIR = /home/kiit/riscv/bin*. Change it as per your installation.
@@ -141,17 +141,17 @@ Copy the content of the generated firmware.txt file (you may exclude zeros) into
 
 ***Points to Remember*** <p>
 1. *Program memory size:* The default size is 1KB. See the generated firmware.hex file. If it crosses 256 lines (= 256 x 4), excluding the last rows of ZEROS, the code will not fit into 1KB memory space. You have to increase it. For that, open Verilog file *progmem.v* and change the line *parameter MEM_SIZE=1024* to the required value. Also, edit the *Makefile* and change the variable *MEM_SIZE = 1024* to the required value. Then open the loader script *sections.lds* and change the LENGTH variable *mem : ORIGIN = 0x00000000, LENGTH = 1K* to the required value. <p>
-2. *Whether Verilog core support toolchain generated opcode?* :  See the *dumpfile* after C compilation and check what registers and instructions are used. This version of CPU supports almost all commonly used instructions unless mentioned at the top of cpu.v <p>
+2. *Whether Verilog core support toolchain generated opcode?* :  See the *dumpfile* after C compilation and check the registers and instructions used. This version of CPU supports almost all commonly used instructions unless mentioned at the top of cpu.v <p>
 3. Traps or any other interrupts are not supported. CSR instructions are not supported in the current version. <p>
 ***N.B.*** This is the initial version of CPU and may contain additional bugs. <p>
 
 ## Schematic of GOWIN Tang 9k FPGA
 ![image](https://github.com/user-attachments/assets/23155624-dbff-4b06-b6cf-676d198d0315)
 ## FPGA Implementation Examples
-Go through the ***fpga*** directory to explore the compiled and implemented project in Tang9K FPGA from GOWIN. Note that: Tang9k uses active low reset. Also LED port is 6 bit. So there are minor changes in reset logic (!rst instead of rst) and top module (top.v).
+Go through the ***fpga*** directory to explore the compiled and implemented project in the Tang9K FPGA from GOWIN. Note that Tang9k uses an active low reset. Also LED port is 6 bits. So there are minor changes in reset logic (!rst instead of rst) and top module (top.v).
 
 ## Revision Note
-Version-2 is more hardware efficient in terms of FPGA resources. V1.0 consumes 34% LUT, V2 takes only 14%. Program memory is isolated from cpu core to bring more flexibility. GPIO logic is also isolated and implemented at top.v file (top module).
+Version-4.1 is more hardware efficient in terms of FPGA resources. Previous versions (V1.0) consume 34% LUT, V2 takes only 14%. Program memory is isolated from the CPU core to bring more flexibility. GPIO logic is also isolated and implemented at top.v file (top module).
 
 ***Known issues/bugs*** <p>
-Date: 16/04/2025: Bug: Arithmetic right shift SRA, SRAI not working, Note: LB, LBU, LH, LHU, SB, SH not implemented/having bug<p>
+Date: 16/04/2025: Bug: Arithmetic right shift SRA, SRAI not working<p>
