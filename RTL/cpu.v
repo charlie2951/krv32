@@ -1,4 +1,4 @@
-/* CPU Version 4.1
+/* CPU Version 4.2
 Verified for synthesis in FPGA
 FSM based design
 R-type, I type and Branch instr included
@@ -11,6 +11,7 @@ Revised on: 16/04/2025
 Bug fixed on 24/4/2025: LB, SB, LH, SH tested 
 LBU, LHU: implemented but not tested
 Reordering of state variable, No of state reduced
+Date: 4/5/2025: ALU bug fixed
 */
 module cpu(
     input rst, clk,
@@ -87,6 +88,7 @@ module cpu(
        (funct3==3'b000) & ~(isStype|isLtype) & funct7[5]? SUB[31:0]: //SUB
        (funct3==3'b100)? XOR: //XOR
        (funct3==3'b110)? OR: //OR
+       (funct3==3'b111)? AND: //AND
        (funct3==3'b010) & !(isStype|isLtype)? {31'b0, LESS_THAN}: //SLT chk
        (funct3==3'b011)? {31'b0, LESS_THAN_U}:
        (funct3==3'b001) &(!isStype)? SLL: //SLL,SLLI chk
