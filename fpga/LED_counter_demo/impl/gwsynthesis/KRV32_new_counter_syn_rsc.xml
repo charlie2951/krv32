@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Module name="top" Register="32" Lut="135" T_Register="98(32)" T_Alu="95(0)" T_Lut="1069(135)" T_Bsram="6(0)">
- <SubModule name="cpu0" Register="66" Alu="95" Lut="913" Bsram="2" T_Register="66(66)" T_Alu="95(95)" T_Lut="913(913)" T_Bsram="2(2)"/>
- <SubModule name="mem0" Lut="21" Bsram="4" T_Lut="21(21)" T_Bsram="4(4)"/>
-</Module>
