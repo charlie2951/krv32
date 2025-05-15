@@ -1,5 +1,5 @@
 // C code to test PWM on 4 channel
-
+// Make sure that krv32.h is present inside "include" directory
 #include <krv32.h>
 
 
