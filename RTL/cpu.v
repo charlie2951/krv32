@@ -1,4 +1,4 @@
-/* CPU Version 4.2
+/* CPU Version 4.1
 Verified for synthesis in FPGA
 FSM based design
 R-type, I type and Branch instr included
@@ -11,14 +11,12 @@ Revised on: 16/04/2025
 Bug fixed on 24/4/2025: LB, SB, LH, SH tested 
 LBU, LHU: implemented but not tested
 Reordering of state variable, No of state reduced
-Date: 4/5/2025: ALU bug fixed
 */
 module cpu(
     input rst, clk,
     input [31:0] mem_rdata,//8 bit data chunk from memory
     output [31:0] mem_addr,
     output [31:0] mem_wdata,
-    output reg [31:0] cycle, //for debugging only to see how many cycle used
     output mem_rstrb,
     output [3:0] mem_wstrb //write strobe mask for writing data to mem
   );
@@ -62,7 +60,7 @@ module cpu(
   wire [31:0] AND = alu_in1 & alu_in2;
   wire [32:0] SUB = {1'b0,alu_in1} + {1'b1, ~alu_in2} + 1'b1; //2's comp additon=subtraction
   //shift operation(only SLL/SLLI and SRL/SRLI implemented)
-  wire [31:0] shift_data_2 = isRtype ? alu_in2 : isItype ? {7'b0,alu_in2[4:0]}:0;
+  wire [31:0] shift_data_2 = isRtype ? alu_in2 : isItype ? {7'b0,alu_in2[4:0]}:0;//possible bug
   wire [31:0] SLL = alu_in1 << shift_data_2;//left shift
   wire [31:0] SRL = alu_in1 >> shift_data_2;//right shift
   wire [31:0] SRA = alu_in1 >>> shift_data_2;//right shift arithmetic(keep sign) BUG
@@ -127,7 +125,8 @@ module cpu(
        mem_halfwordAccess ? (load_store_addr[1] ? 4'b1100 : 4'b0011) : 4'b1111;
 
   //verify this line wstrb
-  assign mem_wstrb = {4{(state==BYTE) & isStype}} & STORE_wmask;
+  //assign mem_wstrb = {4{(state==BYTE) & isStype}} & STORE_wmask;
+assign mem_wstrb = {4{(state==WAIT_LOADING) & isStype}} & STORE_wmask;
 
   //Generate memory address for load or store operation
   assign mem_addr = ((isStype | isLtype) & (load_store_state_flag |(state==WAIT_LOADING))) ? load_store_addr: addr;//calculate address for instruction/data to be stored or fetched
@@ -145,7 +144,6 @@ module cpu(
   begin
     state=0;
     addr = 0;
-    cycle = 0;
     regfile[0] = 0;//X0 reg is always 0
   end
 
@@ -153,7 +151,7 @@ module cpu(
 
   always @(posedge clk)
   begin
-    if(rst)
+    if(!rst)
     begin
       addr <= 0;
       state <= RESET;
@@ -163,7 +161,7 @@ module cpu(
     case(state)
       RESET: //If reset is pressed
       begin
-        if(rst)
+        if(!rst)
           state <= RESET;
         else
           state <= WAIT;
@@ -204,17 +202,7 @@ module cpu(
 
     endcase
   end
-  //*** clock cycle counter **//
-  always @(posedge clk)
-  begin
-    if(rst)
-      cycle <= 0;
-    else
-    begin
-      if(state != HLT)
-        cycle <= cycle + 1;
-    end
-  end
+ 
   // ** Register file write back data **//
   wire write_reg_en = ((isItype|isRtype|isJAL|isJALR|isLUI|isAUIPC) &(state==EXECUTE))|(isLtype & (state==WAIT_LOADING));
   wire [31:0] write_reg_data = (isItype |isRtype) ? alu_result:
