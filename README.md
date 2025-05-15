@@ -9,6 +9,7 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 4. On-board LEDS can be interfaced using C SDK
 5. Fully functional UART Transmitter and Receiver (currently support 9600 baud rate only)
 6. Four-channel PWM output with a frequency of 500HZ and duty cycle 0-100%
+7. Tested in Tang9K Gowin FPGA and Artix-7 series FPGA embedded in Nexys-4 DDR board
    <p></p>
 ## RISC-V Architecture and Instruction Set
 Refer to the RiSC-V official page and/or other tutorials. Some useful links are given below.
@@ -110,7 +111,7 @@ make linux
 ```
 The multilib compiler will have the prefix riscv64-unknown-elf- or riscv64-unknown-linux-gnu- but will be able to target both 32-bit and 64-bit systems. It will support the most common -march/-mabi options, which can be seen by using the --print-multi-lib flag on either cross-compiler.<p>
 
-**Test a Sample counter program** <p>
+**Test a Sample counter program** (outdated) <p>
 Open a test editor and add the following piece of code. Save the code as *main.c*<p>
 ```c
 #include <stdint.h>
