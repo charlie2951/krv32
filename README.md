@@ -2,8 +2,15 @@
 A tiny version of RISC-V for low-resource FPGA developed by the Integrated System Design lab, School of Electronics, KIIT University <p>
 **Objective**
 The main objective of this project is to prototype a RISC-V 32-bit CPU with an **RV32 base integer (RV32I) instruction set**. The CPU is coded using Verilog HDL from scratch and most of the instruction sets are implemented. The code is compatible with the GNU RISC-V toolchain (both assembler and compiler).
-
-**RISC-V Architecture and Instruction Set** <p>
+## Features of KRV-32 soft IP SOC
+1. Supports RISC-V RV-32I extension
+2. Compatible with GNU toolchain
+3. Soft-IP, configurable as per your FPGA
+4. On-board LEDS can be interfaced using C SDK
+5. Fully functional UART Transmitter and Receiver (currently support 9600 baud rate only)
+6. Four-channel PWM output with a frequency of 500HZ and duty cycle 0-100%
+   <p></p>
+## RISC-V Architecture and Instruction Set
 Refer to the RiSC-V official page and/or other tutorials. Some useful links are given below.
 1. https://www2.eecs.berkeley.edu/Pubs/TechRpts/2016/EECS-2016-118.pdf
 2. https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/notebooks/RISCV/RISCV_CARD.pdf
