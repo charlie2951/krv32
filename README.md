@@ -14,12 +14,8 @@ Refer to the RiSC-V official page and/or other tutorials. Some useful links are 
 **Debugging and Simulation** <p>
 For debugging and behavioral simulation, use any Verilog compiler. I have used open-source Icarus Verilog with GTKWave waveform viewer. A sample testbench is added for debugging and test purposes. Modify the testbench as per your requirements.<p>
 *Program Memory space*: Default is 1Kbyte. Each location will contain 32-bit data. However, you can change it in code (progmem.v). Verilog Implementation: *reg[31:0] PROGMEM[0:1023]* <p>
-GPIO  addresses start from 0x10000000. See top modules in Verilog (top.v) for detailed mapping.  <p>
-**GPIO Mapping** <p>
-0x10000000 - 0x10000003 : LED (D0 to D5 of 0x10000003) <p>
-0x10000004 - 0x10000007: UART (planned)<p>
-LED GPIO  is mapped to six onboard active low enabled LEDs in Gowin Semiconductor's Sipeed Tang-9 series FPGA board.<p>
-  **FPGA Implementation**
+
+ **FPGA Implementation**
 Synthesized and implemented in Tang 9K series FPGA with a clock speed of 27 MHz. <p>
 
 *Pin Assignment of FPGA*
@@ -29,7 +25,7 @@ Synthesized and implemented in Tang 9K series FPGA with a clock speed of 27 MHz.
 *Resource Utilization*
 ![image](https://github.com/user-attachments/assets/69265fbb-0129-404b-a391-1bc28b14e25f) <p>
 
-## Memory mapping along with FPGA pin details
+## GPIO mapping along with FPGA pin details
 
 | Peripheral | Base Address |   Tang9K FPGA used Pins   |      Nexys4- DDR FPGA used Pins      |
 |------------|--------------|:-------------------------:|:------------------------------------:|
@@ -38,6 +34,9 @@ Synthesized and implemented in Tang 9K series FPGA with a clock speed of 27 MHz.
 | UART_RX    |  0x3000_0000 |             18            |                  C4                  |
 | PWM        |  0x4000_0000 | 4 on-board LEDS  are used |     RGB LEDs- N16, R11, G14, N15     |
 
+<p>
+LED GPIO  is mapped to six onboard active-low enabled LEDs in Gowin Semiconductor's Sipeed Tang-9 series FPGA board. For Nexys-4 DDR board which uses Artix-7 series FPGA, LEDS are active high and total 8 LEDs are connected. Refer to the table mentioned above. <p>
+	
 **Flowchart** <p>
 The CPU is implemented in a straightforward way by keeping the code simple and understandable. Further optimization may be done to save hardware resources and speed. In this implementation, a multi-clock cycle is required to execute a single instruction. Currently, the R-type (ADD, SUB, AND, OR etc) and Immediate instructions (I-type) instructions (ADDI, ANDI, ORI, etc) consume 5 clock cycles, Load and store type instructions take 9 cycles, Branch and Jump instructions take 3 cycles, and others (LUI, AUIPC) take 4 cycles. Pipelining may be implemented in the future to speed up the execution. <p>
 **Execution Flow in the State machine** <p>
