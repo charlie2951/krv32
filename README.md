@@ -27,8 +27,16 @@ Synthesized and implemented in Tang 9K series FPGA with a clock speed of 27 MHz.
 
 
 *Resource Utilization*
-![image](https://github.com/user-attachments/assets/69265fbb-0129-404b-a391-1bc28b14e25f)
+![image](https://github.com/user-attachments/assets/69265fbb-0129-404b-a391-1bc28b14e25f) <p>
 
+## Memory mapping along with FPGA pin details
+
+| Peripheral | Base Address |   Tang9K FPGA used Pins   |      Nexys4- DDR FPGA used Pins      |
+|------------|--------------|:-------------------------:|:------------------------------------:|
+| LED        |  0x1000_0000 |     10,11,13, 14,15,16    | V11,V12, V14, V15, T16,U14, T15, V16 |
+| UART_TX    |  0x2000_0000 |             17            |                  D4                  |
+| UART_RX    |  0x3000_0000 |             18            |                  C4                  |
+| PWM        |  0x4000_0000 | 4 on-board LEDS  are used |     RGB LEDs- N16, R11, G14, N15     |
 
 **Flowchart** <p>
 The CPU is implemented in a straightforward way by keeping the code simple and understandable. Further optimization may be done to save hardware resources and speed. In this implementation, a multi-clock cycle is required to execute a single instruction. Currently, the R-type (ADD, SUB, AND, OR etc) and Immediate instructions (I-type) instructions (ADDI, ANDI, ORI, etc) consume 5 clock cycles, Load and store type instructions take 9 cycles, Branch and Jump instructions take 3 cycles, and others (LUI, AUIPC) take 4 cycles. Pipelining may be implemented in the future to speed up the execution. <p>
