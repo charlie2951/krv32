@@ -37,6 +37,13 @@ void delay(volatile uint32_t count)
         ;
 }
 
+//GPIO LED data display
+
+void digitalwrite(uint32_t value)
+{
+GCSR->GPIO_0 = value;
+}
+
 //UART Receive 
 volatile uint32_t uart_receive()
 {
