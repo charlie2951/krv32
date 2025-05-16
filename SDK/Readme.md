@@ -33,3 +33,30 @@ int main()
 ```
 
   Here the pwm channel is activated using **pwm_begin(ch no, duty_cycle)**. The 1st channel having duty cycle count of 100 i.e. (100/255)*100% = 40% and so on.
+## Example-2
+Read serial port and display data into LED (if data is in between 0 to 9) and print the pressed character on serial monitor.
+
+```c
+/ C code to test UART receiver-transmitter along with gpio
+
+#include <krv32.h>
+
+
+int main()
+{
+   
+	uart_sendline("Press any key between 0 to 9: \n\r");
+      
+    while (1)
+    {
+	volatile uint32_t rx_data = uart_receive();
+        digitalwrite(rx_data - 48); //convert to decimal digit of num
+         
+        uart_sendline("\n\rYou pressed:  ");
+        uart_send((char)rx_data);
+	uart_sendline("\n\r ");
+        delay(100000);
+        
+    }
+}
+```
