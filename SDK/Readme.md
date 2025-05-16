@@ -1,5 +1,5 @@
 # KRV-32 SDK User Manual
-The ** krv32. h ** header contains all necessary functions for accessing GPIOs, UART, and PWM pins. 
+The ***krv32. h*** header contains all necessary functions for accessing GPIOs, UART, and PWM pins. 
 
 ### Useful C functions
 ***delay(unsigned int count)***  Provides a commin delay function, not optimized for clock frequency variation. At 27MHz Clock, each count provides approx. 1uS delay. <p>
