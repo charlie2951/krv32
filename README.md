@@ -1,4 +1,4 @@
-![Visitor Count](https://profile-counter.glitch.me/{YOUR USER}/count.svg)
+![Visitor Count](https://profile-counter.glitch.me/charlie2951/count.svg)
 # A subset of RISC-V architecture (RV32I) implementation for low-resource FPGA 
 A tiny version of RISC-V for low-resource FPGA developed by the Integrated System Design lab, School of Electronics, KIIT University <p>
 **Objective**
