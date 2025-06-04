@@ -170,7 +170,8 @@ Version-4.1 is more hardware efficient in terms of FPGA resources. Previous vers
 
 ***Known issues/bugs*** <p>
 Date: 16/04/2025: Bug: Arithmetic right shift SRA, SRAI not working<p>
-<center>
-No. of Visitor: 
+
+No. of Visitor: <p>
+
 ![Visitor Count](https://profile-counter.glitch.me/charlie2951/count.svg)
-</center>
+
