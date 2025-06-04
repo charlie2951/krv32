@@ -1,4 +1,3 @@
-![Visitor Count](https://profile-counter.glitch.me/charlie2951/count.svg)
 # A subset of RISC-V architecture (RV32I) implementation for low-resource FPGA 
 A tiny version of RISC-V for low-resource FPGA developed by the Integrated System Design lab, School of Electronics, KIIT University <p>
 **Objective**
@@ -171,3 +170,7 @@ Version-4.1 is more hardware efficient in terms of FPGA resources. Previous vers
 
 ***Known issues/bugs*** <p>
 Date: 16/04/2025: Bug: Arithmetic right shift SRA, SRAI not working<p>
+<center>
+No. of Visitor: 
+![Visitor Count](https://profile-counter.glitch.me/charlie2951/count.svg)
+</center>
