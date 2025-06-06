@@ -1,5 +1,5 @@
 # A subset of RISC-V architecture (RV32I) implementation for low-resource FPGA 
-A tiny version of RISC-V for low-resource FPGA developed by the Integrated System Design lab, School of Electronics, KIIT University <p>
+A tiny version of `RISC-V` for low-resource FPGA developed by the **Integrated System Design lab, School of Electronics, KIIT University** <p>
 **Objective**
 The main objective of this project is to prototype a RISC-V 32-bit CPU with an **RV32 base integer (RV32I) instruction set**. The CPU is coded using Verilog HDL from scratch and most of the instruction sets are implemented. The code is compatible with the GNU RISC-V toolchain (both assembler and compiler).
 ## Features of KRV-32 soft IP SOC
@@ -24,9 +24,9 @@ For debugging and behavioral simulation, use any Verilog compiler. I have used o
 *Program Memory space*: Default is 1Kbyte. Each location will contain 32-bit data. However, you can change it in code (progmem.v). Verilog Implementation: *reg[31:0] PROGMEM[0:1023]* <p>
 
  **FPGA Implementation**
-Synthesized and implemented in Tang 9K series FPGA with a clock speed of 27 MHz. <p>
+Synthesized and implemented in `Tang 9K series FPGA` with a clock speed of `27 MHz`. <p>
 
-*Pin Assignment of FPGA*
+*Pin Assignment of FPGA*(only for accessing on-board LEDs)
 ![image](https://github.com/user-attachments/assets/b1e995d8-2de4-4b03-b7cc-a8b9e1b279ee)
 
 
@@ -81,16 +81,8 @@ FETCH: //Fetch data from progmem RAM
   wire isLUI = (opcode == 5'b01101);
   wire isAUIPC = (opcode == 5'b00101);
 ```
-Then the corresponding control and status signal is generated depending upon the addressing mode (R-type, I-type, branch, Jump etc). See Verilog file for details. <p>
-*REG_RD:* The register read state reads the source register's content and also the immediate data for (I-type) mode. <p>
-*ALU:* Performs arithmetical and logical operations as per instructions and stores the result directly to the destination register in the register file (regfile).<p>
-*REG_WR:* Perform data memory read and write operation for LOAD and STORE type instructions (LB, LW, LH, SB, SW, SH etc.) <p>
-*PC_UPDATE:* Update the program counter (address value) to fetch the next instruction code from program memory.<p>
-*BRANCHING:* State to control/handle branching instructions. Note that for this type of instruction, the program counter is updated inside the same state. <p>
-*JUMPING:* Jump instructions are managed here along with the next address update.<p>
-Other states are LUI and AUIPC to implement the corresponding instructions. <p>
 ## Steps for Generating HEX code from assembly language
-Use any RISC-V assembler to convert your assembly code into Hex dump. One of such online assembler can be found here https://riscvasm.lucasteske.dev/  . Copy the code hex dump, and paste it inside firmware.hex file in Verilog directory. Then run simulation. You can use any other assembler such as RISC-V toolchain etc.
+Use any RISC-V assembler to convert your assembly code into Hex dump. One of such online assembler can be found here https://riscvasm.lucasteske.dev/  . Copy the code hex dump, and paste it inside `firmware.hex` file in Verilog directory. Then run simulation. You can use any other assembler such as RISC-V toolchain etc.
 ## Steps for Generating Hex code from RISC-V C code
 1. Install prerequisites for Ubuntu
 ```
@@ -103,49 +95,39 @@ $ git clone https://github.com/riscv/riscv-gnu-toolchain
 ./configure --prefix=/opt/riscv --with-arch=rv32i --with-abi=ilp32
 make linux
 ```
-Make sure that */opt/riscv* path has rw access. Otherwise, change it to your preferred path. <p>
+Make sure that `/opt/riscv` path has rw access. Otherwise, change it to your preferred path. <p>
 To compile a toolchain for multilib support (both 32-bit and 64-bit), use the following <p>
 ```
 ./configure --prefix=/opt/riscv --enable-multilib
 make linux
 ```
-The multilib compiler will have the prefix riscv64-unknown-elf- or riscv64-unknown-linux-gnu- but will be able to target both 32-bit and 64-bit systems. It will support the most common -march/-mabi options, which can be seen by using the --print-multi-lib flag on either cross-compiler.<p>
+The multilib compiler will have the prefix `riscv64-unknown-elf-` or `riscv64-unknown-linux-gnu-` but will be able to target both 32-bit and 64-bit systems at a cost of installation size and build time. It will support the most common `-march/-mabi` options, which can be seen by using the `--print-multi-lib` flag on either cross-compiler.<p>
 
-## Test a Sample counter program (outdated- see SDK for updated GPIO access API using C program) 
+## Test a Sample counter program (see SDK for updated GPIO access API using C program) 
 Open a test editor and add the following piece of code. Save the code as *main.c*<p>
+Blinking on-board LEDs
 ```c
-#include <stdint.h>
-#include <stdlib.h>
+// C code to blink LED with gpio
+//Customize the code as per your requirement
 
-#define LEDS_START_ADDR 0x10000000
-#define LEDS_DATA_REG_OFFSET 0
-#define LEDS_DATA_REG *((volatile unsigned int *)(LEDS_START_ADDR + LEDS_DATA_REG_OFFSET))
+#include <krv32.h>
 
-int main(void)
+
+int main()
 {
-
-    LEDS_DATA_REG = 0b000000;
-    int  i=0, j=0, k=0;
-
+   volatile uint32_t count = 0;
+	      
     while (1)
     {
-	if(LEDS_DATA_REG == 64)
-	LEDS_DATA_REG = 0;
-       
-       for(i=0;i<1000;i++)
-	{
-		for(j=0;j<1000;j++){
-		}
-	}
-     	LEDS_DATA_REG = LEDS_DATA_REG + 1;		
+	
+        digitalwrite(count); //send data to LED gpio
+        delay(1000000);//user defined delay approx 1sec
+        count = count + 1; //update count by 1
+    }
 }
-    return 0;
-}
-
 ```
-Here #define LEDS_START_ADDR 0x10000000 points to the location where LED ports are connected (2000-2003). Initially, LEDS_DATA_REG = 0b000000, i.e., all LEDS are off. The,n two nested for loops are provided to include a delay so that changes can be observed in the  eye. The while(1) provides an infinite loop, which is common for any embedded CPU. Once all LEDS are ON i.e., count=63, then the counter will be cleared and again it will start counting from the beginning. <p>
 
-***Compiling the source code*** <p>
+## Compiling the source code
 A dedicated makefile is provided (inside testcase located at (testcase/RISCV_GCC_testcases/counter/Makefile) to automate the task. Execute the following commands serially to generate the hex code with an 8-bit chunk. Note: if you are using 32-bit toolchain without multilib support then replace the *riscv64*  keyword by using *riscv32* and also check the GCC toolchain path mentioned in the Makefile. In my case, it is *RISCV_TOOLCHAIN_DIR = /home/kiit/riscv/bin*. Change it as per your installation.
 
 ```shell
