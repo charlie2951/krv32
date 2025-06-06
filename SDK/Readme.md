@@ -37,7 +37,7 @@ int main()
 Read serial port and display data into LED (if data is in between 0 to 9) and print the pressed character on serial monitor.
 
 ```c
-/ C code to test UART receiver-transmitter along with gpio
+// C code to test UART receiver-transmitter along with gpio
 
 #include <krv32.h>
 
@@ -57,6 +57,28 @@ int main()
 	uart_sendline("\n\r ");
         delay(100000);
         
+    }
+}
+```
+## Example-3
+Blinking on-board LEDs
+```c
+// C code to blink LED with gpio
+//Customize the code as per your requirement
+
+#include <krv32.h>
+
+
+int main()
+{
+   volatile uint32_t count = 0;
+	      
+    while (1)
+    {
+	
+        digitalwrite(count); //send data to LED gpio
+        delay(1000000);//user defined delay approx 1sec
+        count = count + 1; //update count by 1
     }
 }
 ```
