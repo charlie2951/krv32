@@ -111,7 +111,7 @@ make linux
 ```
 The multilib compiler will have the prefix riscv64-unknown-elf- or riscv64-unknown-linux-gnu- but will be able to target both 32-bit and 64-bit systems. It will support the most common -march/-mabi options, which can be seen by using the --print-multi-lib flag on either cross-compiler.<p>
 
-**Test a Sample counter program** (outdated) <p>
+## Test a Sample counter program (outdated- see SDK for updated GPIO access API using C program) 
 Open a test editor and add the following piece of code. Save the code as *main.c*<p>
 ```c
 #include <stdint.h>
@@ -170,6 +170,7 @@ Version-4.1 is more hardware efficient in terms of FPGA resources. Previous vers
 
 ***Known issues/bugs*** <p>
 Date: 16/04/2025: Bug: Arithmetic right shift SRA, SRAI not working<p>
+Date: 5/6/2025: Bug fixed `SRA` and `SRAI` instructions. No known bug.
 
 No. of Visitor: <p>
 
