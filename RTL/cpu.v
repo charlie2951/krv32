@@ -5,7 +5,7 @@ R-type, I type and Branch instr included
 Shift operator implemented (SLL/SLLI, SRL/SRLI)
 Load and store implemented
 Jump implementing
-Bug: Arithmetic right shift SRA, SRAI not working
+Bug fixed: Arithmetic right shift SRA, SRAI working
 Bug: LH, LB, SH, SB, LBU, LHU not working
 Revised on: 16/04/2025
 Bug fixed on 24/4/2025: LB, SB, LH, SH tested 
@@ -63,7 +63,7 @@ module cpu(
   wire [31:0] shift_data_2 = isRtype ? alu_in2 : isItype ? {7'b0,alu_in2[4:0]}:0;//possible bug
   wire [31:0] SLL = alu_in1 << shift_data_2;//left shift
   wire [31:0] SRL = alu_in1 >> shift_data_2;//right shift
-  wire [31:0] SRA = alu_in1 >>> shift_data_2;//right shift arithmetic(keep sign) BUG
+  wire [31:0] SRA = $signed(alu_in1) >>> shift_data_2; //right shift arithmetic(keep sign)
 
   //branching
   wire EQUAL =  (SUB[31:0] == 0); //if A and B are same then Sub result is 0
@@ -89,8 +89,8 @@ module cpu(
        (funct3==3'b111)? AND: //AND
        (funct3==3'b010) & !(isStype|isLtype)? {31'b0, LESS_THAN}: //SLT chk
        (funct3==3'b011)? {31'b0, LESS_THAN_U}:
-       (funct3==3'b001) &(!isStype)? SLL: //SLL,SLLI chk
-       (funct3==3'b101)? SRL: //SRL,SRLI
+       (funct3==3'b001) &(!isStype) ? SLL: //SLL,SLLI chk
+       (funct3==3'b101) & (~funct7[5])? SRL: //SRL,SRLI
        (funct3==3'b101) & funct7[5]? SRA:
        (isStype | isLtype | isJALR) ? ADD:0; //S-type, L type, for mem location calc
 
