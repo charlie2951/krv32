@@ -1,3 +1,4 @@
+//*** Top module contain UART, LED gpio and Program Memory ***//
 module top(
     input rst, clk, boot,
     input uart_rx,
@@ -102,3 +103,4 @@ assign leds = ~tmp_led;
                 );
   
 endmodule
+
