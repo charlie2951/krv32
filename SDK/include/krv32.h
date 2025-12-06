@@ -24,46 +24,46 @@ SOFTWARE.
 
 #include <stdint.h>
 #include <stdlib.h>
-#include <gpio_regs.h>
-#include <uart_regs_rx.h>
-#include <uart_regs_tx.h>
-#include <pwm_regs.h>
+//*** LED Address mapping */
+#define LED_ADDR 0x10000000   // starting addr of LED
+#define LED_DATA *((volatile unsigned int *)(LED_ADDR ))
+//********** UART Transmitter Register address map *******
+#define UART_TXDATA_ADDR 0x20000000   // starting addr of UART DATA REG
+#define UART_TXDATA *((volatile unsigned int *)(UART_TXDATA_ADDR ))
+#define UART_TXCTRL_ADDR 0x20000004   // starting addr of UART CTRL REG
+#define UART_TXCTRL *((volatile unsigned int *)(UART_TXCTRL_ADDR ))
+#define UART_TXSTATUS_ADDR 0x20000008   // starting addr of UART status REG
+#define UART_TXSTATUS *((volatile unsigned int *)(UART_TXSTATUS_ADDR ))
+//******UART Receiver Register address mapping**************
+#define UART_RXDATA_ADDR 0x20000010   // starting addr of UART DATA REG
+#define UART_RXDATA *((volatile unsigned int *)(UART_RXDATA_ADDR ))
+#define UART_RXCTRL_ADDR 0x20000014   // starting addr of UART CTRL REG
+#define UART_RXCTRL *((volatile unsigned int *)(UART_RXCTRL_ADDR ))
+#define UART_RXSTATUS_ADDR 0x20000018   // starting addr of UART status REG
+#define UART_RXSTATUS *((volatile unsigned int *)(UART_RXSTATUS_ADDR ))
+#define BOOTMEM_ADDR 0x00080000   // starting addr of Bootloader
 
-//delay function
-//count is in microsec (typical)
-void delay(volatile uint32_t count)
-{
-    for (volatile uint32_t i = 0; i < count; i++)
-        ;
+//Delay function
+void delay(uint32_t cycles) {
+  volatile uint32_t count = 0; // volatile to prevent compiler optimization
+
+  while (count < cycles) {
+    count++;
+  }
 }
 
-//GPIO LED data display
 
-void digitalwrite(uint32_t value)
-{
-GCSR->GPIO_0 = value;
-}
-
-//UART Receive 
-volatile uint32_t uart_receive()
-{
-	UART_RX->U_CTRL_bf.START = 1;//enable receiver
-   
-   	while(UART_RX->U_STAT_bf.READY==0) ;//wait if busy receiving data
-           
-   	return UART_RX->U_DATA ;
-    
-}
-//uart send a single character
+//uart function to send a single character
 void uart_send(uint8_t my_char)
 {
-    while(UCSR->U_STAT_bf.READY==0) ;
+    while(UART_TXSTATUS==0) ;
            
-    UCSR->U_DATA = my_char;
-    UCSR->U_CTRL_bf.START = 1;
+    UART_TXDATA = my_char;
+    UART_TXCTRL = 1;
+    UART_TXCTRL = 0;
    
 }
-//UARt send a string 
+//UART function to send a string 
 void uart_sendline(uint8_t *my_str)
 {
     for (uint8_t i = 0; my_str[i] != '\0'; i++)
@@ -73,30 +73,15 @@ void uart_sendline(uint8_t *my_str)
     }
 }
 
-//PWM related functions
-//PWM channel select: 0 to 3
-//duty cycle is for selected channel : range 0 to 255
-void pwm_begin(volatile uint32_t channel_no, volatile uint32_t duty_cycle)
+//UART Receive 
+volatile uint32_t uart_receive()
 {
-if(channel_no==0){
-PWM->CHANNEL_SEL0=1;
-PWM->DUTY_CYCLE0=duty_cycle;
-}
-
-if(channel_no==1){
-PWM->CHANNEL_SEL1=1;
-PWM->DUTY_CYCLE1=duty_cycle;
-}
-
-if(channel_no==2){
-PWM->CHANNEL_SEL2=1;
-PWM->DUTY_CYCLE2=duty_cycle;
-}
-
-if(channel_no==3){
-PWM->CHANNEL_SEL3=1;
-PWM->DUTY_CYCLE3=duty_cycle;
-}
-
+	UART_RXCTRL = 1;//enable receiver
+   UART_RXCTRL = 0;//disable receiver
+   	while(UART_RXSTATUS==0) ;//wait if busy receiving data
+    //UART_RXCTRL = 0;//disable receiver
+           
+   	return UART_RXDATA ;
+    
 }
 
