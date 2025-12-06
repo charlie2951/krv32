@@ -1,59 +1,133 @@
-//     # This module is designed after corescore_emitter_uart by Olof Kindgren which
-//     # is part of the corescore repository on github.
-//     #
-//     # https://github.com/olofk/corescore/blob/master/rtl/corescore_emitter_uart.v
-//     #
-//     # The original code is licensed under the Apache-2.0 license.
-//     # A copy of this license file is included in this repository in the LICENSES
-//     # directory.
-
 module uart_tx
-  #(
-    parameter clk_freq_hz = 100 * 1000000, // 100 MHz
-    parameter baud_rate = 9600)
-  (
-   input wire 	    i_clk,
-   input wire 	    i_rst,
-   input wire [7:0] i_data,
-   input wire 	    i_valid,
-   output reg 	    o_ready,
-   output wire 	    o_uart_tx);
+#(
+	parameter CLK_FRE = 27,      //clock frequency(Mhz)
+	parameter BAUD_RATE = 9600 //serial baud rate
+)
+(
+	input                        clk,              //clock input
+	input                        rst_n,            //asynchronous reset input, low active 
+	input[7:0]                   tx_data,          //data to send
+	input                        tx_data_valid,    //data to be sent is valid
+	output reg                   tx_data_ready,    //send ready
+	output                       tx_pin            //serial data output
+);
+//calculates the clock cycle for baud rate 
+localparam                       CYCLE = CLK_FRE * 1000000 / BAUD_RATE;
+//state machine code
+localparam                       S_IDLE       = 1;
+localparam                       S_START      = 2;//start bit
+localparam                       S_SEND_BYTE  = 3;//data bits
+localparam                       S_STOP       = 4;//stop bit
+reg[2:0]                         state;
+reg[2:0]                         next_state;
+reg[15:0]                        cycle_cnt; //baud counter
+reg[2:0]                         bit_cnt;//bit counter
+reg[7:0]                         tx_data_latch; //latch data to send
+reg                              tx_reg; //serial data output
+assign tx_pin = tx_reg;
+always@(posedge clk or negedge rst_n)
+begin
+	if(rst_n == 1'b0)
+		state <= S_IDLE;
+	else
+		state <= next_state;
+end
 
-   
-   localparam START_VALUE = clk_freq_hz/baud_rate;
-   
-   localparam WIDTH = $clog2(START_VALUE);
-   
-   reg [WIDTH:0]  cnt;
-   
-   reg [9:0] 	    data;
+always@(*)
+begin
+	case(state)
+		S_IDLE:
+			if(tx_data_valid == 1'b1)
+				next_state <= S_START;
+			else
+				next_state <= S_IDLE;
+		S_START:
+			if(cycle_cnt == CYCLE - 1)
+				next_state <= S_SEND_BYTE;
+			else
+				next_state <= S_START;
+		S_SEND_BYTE:
+			if(cycle_cnt == CYCLE - 1  && bit_cnt == 3'd7)
+				next_state <= S_STOP;
+			else
+				next_state <= S_SEND_BYTE;
+		S_STOP:
+			if(cycle_cnt == CYCLE - 1)
+				next_state <= S_IDLE;
+			else
+				next_state <= S_STOP;
+		default:
+			next_state <= S_IDLE;
+	endcase
+end
+always@(posedge clk or negedge rst_n)
+begin
+	if(rst_n == 1'b0)
+		begin
+			tx_data_ready <= 1'b0;
+		end
+	else if(state == S_IDLE)
+		if(tx_data_valid == 1'b1)
+			tx_data_ready <= 1'b0;
+		else
+			tx_data_ready <= 1'b1;
+	else if(state == S_STOP && cycle_cnt == CYCLE - 1)
+			tx_data_ready <= 1'b1;
+end
 
-   assign o_uart_tx = data[0] | !(|data);
 
-   always @(posedge i_clk) begin
-      
-      if (i_rst) begin
-            cnt <= {WIDTH{1'b0}};
-            data <= 10'h0;
+always@(posedge clk or negedge rst_n)
+begin
+	if(rst_n == 1'b0)
+		begin
+			tx_data_latch <= 8'd0;
+		end
+	else if(state == S_IDLE && tx_data_valid == 1'b1)
+			tx_data_latch <= tx_data;
+		
+end
 
-      end
+always@(posedge clk or negedge rst_n)
+begin
+	if(rst_n == 1'b0)
+		begin
+			bit_cnt <= 3'd0;
+		end
+	else if(state == S_SEND_BYTE)
+		if(cycle_cnt == CYCLE - 1)
+			bit_cnt <= bit_cnt + 3'd1;
+		else
+			bit_cnt <= bit_cnt;
+	else
+		bit_cnt <= 3'd0;
+end
 
-      else begin
-            if (cnt[WIDTH] & !(|data))
-            o_ready <= 1'b1;
-            else if (i_valid & o_ready)
-            o_ready <= 1'b0;
-      
-            if (o_ready | cnt[WIDTH])
-            cnt <= {1'b0,START_VALUE[WIDTH-1:0]};
-            else
-            cnt <= cnt-1;
-            
-            if (cnt[WIDTH])
-            data <= {1'b0, data[9:1]};
-            else if (i_valid & o_ready)
-            data <= {1'b1, i_data, 1'b0};
-      end
-   end
-      
-endmodule
+
+always@(posedge clk or negedge rst_n)
+begin
+	if(rst_n == 1'b0)
+		cycle_cnt <= 16'd0;
+	else if((state == S_SEND_BYTE && cycle_cnt == CYCLE - 1) || next_state != state)
+		cycle_cnt <= 16'd0;
+	else
+		cycle_cnt <= cycle_cnt + 16'd1;	
+end
+
+always@(posedge clk or negedge rst_n)
+begin
+	if(rst_n == 1'b0)
+		tx_reg <= 1'b1;
+	else
+		case(state)
+			S_IDLE,S_STOP:
+				tx_reg <= 1'b1; 
+			S_START:
+				tx_reg <= 1'b0; 
+			S_SEND_BYTE:
+				tx_reg <= tx_data_latch[bit_cnt];
+			default:
+				tx_reg <= 1'b1; 
+		endcase
+end
+
+endmodule 
