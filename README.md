@@ -11,6 +11,211 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 6. Four-channel PWM output with a frequency of 500HZ and duty cycle 0-100%
 7. Tested in Tang9K Gowin FPGA and Artix-7 series FPGA embedded in Nexys-4 DDR board
    <p></p>
+   
+## RV32I CPU – Design Documentation (Version 3.0)
+**Architecture:** Multi-cycle controlled by Finite-State-Machine (FSM) 
+**ISA Support:** RV32I (Base Integer Instructions)
+Last Revision: 24-April-2025
+Author: — Subir Kr. Maity
+Target: FPGA-friendly, resource-minimal core
+<p> </p>
+
+**1. Overview**
+
+This document describes the function and micro-architecture of a simple RV32I processor implemented using a finite-state machine (FSM). The design is optimized for small FPGAs and uses a single-port synchronous memory with one-cycle latency.
+
+The CPU executes all RV32I instructions:
+
+ALU operations (R-type, I-type)
+
+Load/store
+
+Branch
+
+Jumps (JAL, JALR)
+
+Upper immediate instructions (LUI, AUIPC)
+
+**Major design characteristics**
+_Feature	Description_
+Architecture	FSM-based sequential core
+ISA	RV32I (no multiplication/division)
+Pipeline	None (multi-cycle FSM states)
+Memory	32-bit synchronous single-cycle
+Register File	32 × 32-bit, hardwired x0=0
+ALU	Supports ADD/SUB, logic, shifts, SLT/SLTU
+Load/Store	Byte, halfword, word (signed/unsigned)
+Endianness	Little-endian
+Branch Resolution	In EXECUTE stage
+Known bugs fixed
+
+LB, LH, SB, SH: Fixed on 24-Apr-2025
+
+LBU, LHU: Implemented but not fully verified
+
+SRA/SRAI: Still listed as known issue
+
+Store address alignment: corrected
+<p></p>
+
+**2. Top-Level CPU Interface**
+
+```verilog
+module cpu(
+    input         rst,
+    input         clk,
+    input [31:0]  mem_rdata,
+    output [31:0] mem_addr,
+    output [31:0] mem_wdata,
+    output        mem_rstrb,
+    output reg [31:0] cycle,
+    output [3:0]  mem_wstrb
+);
+```
+
+## Signal Descriptions
+|Signal|	Dir|	Width|	Description|
+|-------|-------|--------|-------------|
+|`clk`	|	in	|1	|System clock|
+|`rst`	|	in	|1	|Synchronous reset|
+|`mem_rdata`|	in	|32	|Data from memory|
+|`mem_addr`|	out	|32|	Address for load/store or instruction fetch|
+|`mem_wdata`|	out	|32	|Write data for store instructions|
+|`mem_rstrb`|	out	|1	|Memory read request|
+|`mem_wstrb`|	out|	4|	Byte-wide write strobes|
+|`cycle`|	out|	32|	Cycle counter(for debugging purpose)|
+
+**3. Microarchitecture**
+
+The CPU uses a finite-state machine with 8 states:
+
+|State		|	Code	|Description|
+|------------|----------|-----------|
+|`RESET`	|		0|	Initialize PC and state|
+|`WAIT`		|	1	|Extra cycle for synchronous memory fetch|
+|`FETCH`	|		2	|Instruction fetch (mem_rdata is valid)|
+|`DECODE`	|	3	|Decode instruction, read register file|
+|`EXECUTE`	|	4	|Perform ALU, branch decision, compute next PC|
+|`BYTE`	|		5|	Load/store address preparation|
+|`WAIT_LOADING`|	6|	Wait for memory access completion|
+|`HLT`	|		7	|Halt on system instruction|
+**4. Instruction Decoding**
+Opcode extraction
+wire [4:0] opcode = data[6:2];
+
+Instruction classification <p>
+|Type|	Opcode|	Examples|
+|----|---------|---------|
+|R-type|	01100|	ADD, SUB, AND, XOR, SLL|
+|I-type|	00100|	ADDI, ANDI, ORI, SLTI|
+|Load	|00000	|LB, LH, LW, LBU, LHU|
+|Store|	01000|	SB, SH, SW|
+|Branch|	11000|	BEQ, BNE, BLT|
+|JAL|	11011|	Unconditional jump|
+|JALR|	11001|	Register jump|
+|LUI|	01101|	Load Upper Immediate|
+|AUIPC|	00101|	PC-relative immediate|
+
+Immediate formats `(I, S, B, J, U)` are decoded exactly per RISC-V spec.
+
+**5. ALU Design**
+Supported operations:
+|Operation|	Notes|
+|---------|-------|
+|ADD, SUB	SUB| uses two's complement addition
+|AND, OR, XOR|	Standard logic ops|
+|SLL, SRL|	Shift by register or immediate|
+|SRA|	Signed right shift (buggy in this version)|
+|SLT, SLTU|	Uses sign-bit and carry to determine relation|
+
+### ALU input selection
+
+alu_in1 = rs1
+
+alu_in2 = depends on instruction type (rs2 or immediate)
+
+6. Branch and Jump Logic
+
+Branch decision uses ALU subtraction and comparison signals:
+
+wire TAKE_BRANCH = ...
+
+
+pcplus4 and pcplusimm are computed and used as next PC depending on instruction type.
+
+7. Memory System
+Load/Store addressing
+
+Address from ALU result:
+
+load_store_addr = alu_result;
+
+Byte & halfword extraction
+
+Handles:
+
+LB/LBU
+
+LH/LHU
+
+LW
+
+Using bit index on load_store_addr.
+
+Write mask generation
+
+Determines which bytes of the 32-bit bus to write during store instructions.
+
+8. Register File
+
+32 registers (x0–x31)
+
+Writes occur in EXECUTE or WAIT_LOADING state
+
+x0 is permanently zero
+
+Write-back data selection:
+
+ALU result
+
+Load data
+
+PC+4 for jumps
+
+U-type immediates
+
+9. FSM Operation
+Execution Timeline per Instruction
+
+WAIT
+Initiates new instruction fetch (memory latency accommodation)
+
+FETCH
+Gets instruction from memory
+
+DECODE
+Reads register file and decodes instruction fields
+
+EXECUTE
+ALU computes result
+Branch decision made
+Next PC calculated
+
+BYTE / WAIT_LOADING
+Performs load/store address delay
+Generates strobes
+Waits for memory read data
+
+Write-back
+Register file updated
+
+10. Bugs / Limitations
+Known Functional Issues
+Feature	Status
+SRA, SRAI	Bugged (sign handling issue)
+LBU, LHU	Implemented but not validated
+Misaligned access	Not fully supported
+No pipeline	, Multi-cycle per instruction
 ## RISC-V Architecture and Instruction Set
 Refer to the RiSC-V official page and/or other tutorials. Some useful links are given below.
 1. https://www2.eecs.berkeley.edu/Pubs/TechRpts/2016/EECS-2016-118.pdf
