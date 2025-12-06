@@ -1,6 +1,27 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 23.07.2025 11:24:12
+// Design Name: 
+// Module Name: uart_rx
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
 module uart_rx
 #(
-	parameter CLK_FRE = 100,      //clock frequency(Mhz)
+	parameter CLK_FRE = 27,      //clock frequency(Mhz)
 	parameter BAUD_RATE = 9600 //serial baud rate
 )
 (
