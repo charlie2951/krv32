@@ -38,23 +38,19 @@ Upper immediate instructions (LUI, AUIPC)
 
 **Major design characteristics**
 _Feature	Description_
-Architecture	FSM-based sequential core
-ISA	RV32I (no multiplication/division)
-Pipeline	None (multi-cycle FSM states)
-Memory	32-bit synchronous single-cycle
-Register File	32 × 32-bit, hardwired x0=0
-ALU	Supports ADD/SUB, logic, shifts, SLT/SLTU
-Load/Store	Byte, halfword, word (signed/unsigned)
-Endianness	Little-endian
-Branch Resolution	In EXECUTE stage
-Known bugs fixed
+|Architecture|	FSM-based sequential core|
+|------------|----------------------------|
+|ISA|	`RV32I` (no multiplication/division)|
+|Pipeline|	None (multi-cycle FSM states)|
+|Memory|	32-bit synchronous single-cycle|
+|Register File	|32 × 32-bit, hardwired x0=0|
+|ALU|	supports `ADD/SUB`, logic, shifts, `SLT/SLTU` `Load/Store`	`Byte`, `halfword`, `word` (signed/unsigned) Endianness	Little-endian|
 
-LB, LH, SB, SH: Fixed on 24-Apr-2025
+### Known bugs fixed
 
-LBU, LHU: Implemented but not fully verified
-
-SRA/SRAI: Still listed as known issue
-
+`LB, LH, SB, SH`: Fixed on 24-Apr-2025<p>
+`LBU, LHU`: Implemented but not fully verified<p>
+`SRA/SRAI`: Still listed as known issue<p>
 Store address alignment: corrected
 <p></p>
 
@@ -85,7 +81,7 @@ module cpu(
 |`mem_wstrb`|	out|	4|	Byte-wide write strobes|
 |`cycle`|	out|	32|	Cycle counter(for debugging purpose)|
 
-**3. Microarchitecture**
+**3. Microarchitecture**<p>
 
 The CPU uses a finite-state machine with 8 states:
 
@@ -101,8 +97,8 @@ The CPU uses a finite-state machine with 8 states:
 |`HLT`	|		7	|Halt on system instruction|
 
 **4. Instruction Decoding**
-Opcode extraction
-`wire [4:0] opcode = data[6:2];`
+Opcode extraction<p>
+`wire [4:0] opcode = data[6:2];`<p>
 
 Instruction classification <p>
 |Type|	Opcode|	Examples|
@@ -131,30 +127,30 @@ Supported operations:
 
 ### ALU input selection
 
-`alu_in1 = rs1`
-`alu_in2 = depends on instruction type (rs2 or immediate)`
+`alu_in1 = rs1`<p>
+`alu_in2 = depends on instruction type (rs2 or immediate)`<p>
 
 **6. Branch and Jump Logic**
 
-Branch decision uses ALU subtraction and comparison signals:
+Branch decision uses ALU subtraction and comparison signals:<p>
 
-`wire TAKE_BRANCH = ...`
+`wire TAKE_BRANCH = ...`<p>
 
 
 `pcplus4` and `pcplusimm` are computed and used as next PC depending on instruction type.
 
 **7. Memory System**
-Load/Store addressing
-Address from ALU result:
-`load_store_addr = alu_result;`
-Byte & halfword extraction
-Handles:
-LB/LBU
-LH/LHU
-LW
-Using bit index on `load_store_addr`.
-Write mask generation
-Determines which bytes of the 32-bit bus to write during store instructions.
+Load/Store addressing<p>
+Address from ALU result:<p>
+`load_store_addr = alu_result;`<p>
+Byte & halfword extraction<p>
+Handles:<p>
+LB/LBU<p>
+LH/LHU<p>
+LW<p>
+Using bit index on `load_store_addr`.<p>
+Write mask generation<p>
+Determines which bytes of the 32-bit bus to write during store instructions.<p>
 
 **8. Register File**
 
@@ -167,38 +163,38 @@ Load data<p>
 `PC+4` for jumps<p>
 U-type immediates<p>
 <p>
+	
 **9. FSM Operation**
 Execution Timeline per Instruction
 
 `WAIT`<p>
-Initiates new instruction fetch (memory latency accommodation)
+Initiates new instruction fetch (memory latency accommodation)<p>
 
 `FETCH`<p>
-Gets instruction from memory
+Gets instruction from memory<p>
 
 `DECODE`<p>
-Reads register file and decodes instruction fields
+Reads register file and decodes instruction fields<p>
 
 `EXECUTE`<p>
-ALU computes result
-Branch decision made
-Next PC calculated
+ALU computes result<p>
+Branch decision made<p>
+Next PC calculated<p>
 
 `BYTE / WAIT_LOADING` <p>
-Performs load/store address delay
-Generates strobes
-Waits for memory read data
+Performs load/store address delay <p>
+Generates strobes <p>
+Waits for memory read data<p>
+Write-back<p>
+Register file updated<p>
 
-Write-back
-Register file updated
+**10. Bugs / Limitations**
+<p></p>
+Known Functional Issues<p></p>
+LBU, LHU	Implemented but not validated<p></p>
+Misaligned access. Not fully supported.<p></p>
+No `pipeline`	, Multi-cycle per instruction
 
-10. Bugs / Limitations
-Known Functional Issues
-Feature	Status
-SRA, SRAI	Bugged (sign handling issue)
-LBU, LHU	Implemented but not validated
-Misaligned access	Not fully supported
-No pipeline	, Multi-cycle per instruction
 ## RISC-V Architecture and Instruction Set
 Refer to the RiSC-V official page and/or other tutorials. Some useful links are given below.
 1. https://www2.eecs.berkeley.edu/Pubs/TechRpts/2016/EECS-2016-118.pdf
