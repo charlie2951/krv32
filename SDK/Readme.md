@@ -1,4 +1,5 @@
 # KRV-32 SDK User Manual
+## (Outdated, will be updated soon to make compatibility with RTL code)
 The `krv32. h` header contains all necessary functions for accessing GPIOs, UART, and PWM pins. 
 
 ### Useful C functions
