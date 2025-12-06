@@ -20,6 +20,8 @@ Author: — Subir Kr. Maity
 Target: FPGA-friendly, resource-minimal core
 <p> </p>
 
+<img width="800" height="600" alt="block" src="https://github.com/user-attachments/assets/89cfa439-5de9-4473-b9c8-fa9fe0eb5fee" />
+
 **1. Overview**
 
 This document describes the function and micro-architecture of a simple RV32I processor implemented using a finite-state machine (FSM). The design is optimized for small FPGAs and uses a single-port synchronous memory with one-cycle latency.
@@ -332,7 +334,7 @@ Copy the content of the generated firmware.txt file (you may exclude zeros) into
 Go through the ***fpga*** directory to explore the compiled and implemented project in the Tang9K FPGA from GOWIN. Note that Tang9k uses an active low reset. Also LED port is 6 bits. So there are minor changes in reset logic (!rst instead of rst) and top module (top.v).
 
 ## Revision Note
-Version-4.1 is more hardware efficient in terms of FPGA resources. Previous versions (V1.0) consume 34% LUT, V2 takes only 14%. Program memory is isolated from the CPU core to bring more flexibility. GPIO logic is also isolated and implemented at top.v file (top module).
+Version-3 is more hardware efficient in terms of FPGA resources. Previous versions (V1.0) consume 34% LUT, V2 takes only 14%. Program memory is isolated from the CPU core to bring more flexibility. GPIO logic is also isolated and implemented at top.v file (top module).
 
 ***Known issues/bugs*** <p>
 Date: 16/04/2025: Bug: Arithmetic right shift SRA, SRAI not working<p>
