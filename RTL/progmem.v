@@ -14,15 +14,9 @@ module progmem(
   parameter MEM_SIZE = 1024;
   reg [31:0] PROGMEM[0:MEM_SIZE-1]; //define program mem with 1024 location
   wire [29:0] mem_loc = addr[31:2];
-  integer i;
   initial
   begin
-    for (i=0; i<MEM_SIZE; i=i+1) 
-   begin
-      PROGMEM[i] = 'h0;
-  end
-
-    $readmemh("firmware.mem", PROGMEM);//load firmware into memory
+    $readmemh("firmware.hex", PROGMEM);//load firmware into memory
   end
   always @(posedge clk)
   begin
@@ -44,5 +38,4 @@ module progmem(
       PROGMEM[mem_loc][31:24] <= data_in[31:24];
 
   end
-
 endmodule
