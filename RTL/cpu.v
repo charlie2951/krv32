@@ -1,29 +1,33 @@
 /* CPU Version 4.1
+Support RV-32I extension only
 Verified for synthesis in FPGA
 FSM based design
 R-type, I type and Branch instr included
 Shift operator implemented (SLL/SLLI, SRL/SRLI)
 Load and store implemented
 Jump implementing
-Bug fixed: Arithmetic right shift SRA, SRAI working
+Bug: Arithmetic right shift SRA, SRAI not working
 Bug: LH, LB, SH, SB, LBU, LHU not working
 Revised on: 16/04/2025
 Bug fixed on 24/4/2025: LB, SB, LH, SH tested 
 LBU, LHU: implemented but not tested
 Reordering of state variable, No of state reduced
+Revision: 26/9/2025: BOOT input added: BOOT=1 -> Bootloader, BOOT=0-> execution
 */
-module cpu(
-    input rst, clk,
+module KRV32(
+    input rst, clk,boot,//boot=1 means firmware loading in progmem (planned, not working now)
     input [31:0] mem_rdata,//8 bit data chunk from memory
     output [31:0] mem_addr,
     output [31:0] mem_wdata,
     output mem_rstrb,
+    output reg [31:0] cycle,
     output [3:0] mem_wstrb //write strobe mask for writing data to mem
   );
 
   reg [31:0] regfile[0:31];//Register file with X0 to X31;
   reg [31:0] addr, data_rs1, data_rs2; //address bus
   reg [31:0] data; //data bus
+ // reg boot_flag;
   // reg [31:0] load_data_tmp;
   reg [3:0] state; //state register
   parameter RESET=0, WAIT=1, FETCH=2, DECODE=3, EXECUTE=4, BYTE=5, WAIT_LOADING=6, HLT=7; //Different states
@@ -63,7 +67,7 @@ module cpu(
   wire [31:0] shift_data_2 = isRtype ? alu_in2 : isItype ? {7'b0,alu_in2[4:0]}:0;//possible bug
   wire [31:0] SLL = alu_in1 << shift_data_2;//left shift
   wire [31:0] SRL = alu_in1 >> shift_data_2;//right shift
-  wire [31:0] SRA = $signed(alu_in1) >>> shift_data_2; //right shift arithmetic(keep sign)
+  wire [31:0] SRA = $signed(alu_in1) >>> shift_data_2;//right shift arithmetic(keep sign) BUG
 
   //branching
   wire EQUAL =  (SUB[31:0] == 0); //if A and B are same then Sub result is 0
@@ -89,13 +93,13 @@ module cpu(
        (funct3==3'b111)? AND: //AND
        (funct3==3'b010) & !(isStype|isLtype)? {31'b0, LESS_THAN}: //SLT chk
        (funct3==3'b011)? {31'b0, LESS_THAN_U}:
-       (funct3==3'b001) &(!isStype) ? SLL: //SLL,SLLI chk
-       (funct3==3'b101) & (~funct7[5])? SRL: //SRL,SRLI
-       (funct3==3'b101) & funct7[5]? SRA:
+       (funct3==3'b001) &(!isStype)? SLL: //SLL,SLLI chk
+       (funct3==3'b101) & (~funct7[5]) ? SRL: //SRL,SRLI
+       (funct3==3'b101) & funct7[5]? SRA://Arithmetic right shift-sign extended(bug)
        (isStype | isLtype | isJALR) ? ADD:0; //S-type, L type, for mem location calc
 
   //source1 and source 2 data for ALU operation
-  wire [31:0] alu_in1 = data_rs1; //source is always rs1 for both type
+  wire  [31:0] alu_in1 = data_rs1; //source is always rs1 for both type
   wire [31:0] alu_in2 = (isRtype | isBtype)? data_rs2 : (isItype | isLtype |isJALR)? I_data:S_data;//ALU req for comparison in Btype
   wire [31:0] pcplus4 = addr + 4;
   wire [31:0] pcplusimm = addr + (isBtype ? B_data: isJAL ? J_data:isAUIPC ? U_data: 0);
@@ -142,18 +146,21 @@ assign mem_wstrb = {4{(state==WAIT_LOADING) & isStype}} & STORE_wmask;
 
   initial
   begin
+    cycle = 0;
     state=0;
-    addr = 0;
+   // addr = boot ? 32'h00080000:32'h0;//check whether boot mode ot execution mode
     regfile[0] = 0;//X0 reg is always 0
   end
-
-  //clock dependent operation
-
-  always @(posedge clk)
+  
+   always @(posedge clk)
   begin
-    if(!rst)
+    if(rst)
     begin
-      addr <= 0;
+      //addr <= boot ? 32'h00080000:32'h0;
+      if(boot)
+      addr <= 32'h00080000;
+      else
+      addr <= 32'h0;
       state <= RESET;
       data <= 32'h0;
     end
@@ -161,7 +168,7 @@ assign mem_wstrb = {4{(state==WAIT_LOADING) & isStype}} & STORE_wmask;
     case(state)
       RESET: //If reset is pressed
       begin
-        if(!rst)
+        if(rst)
           state <= RESET;
         else
           state <= WAIT;
@@ -203,6 +210,19 @@ assign mem_wstrb = {4{(state==WAIT_LOADING) & isStype}} & STORE_wmask;
     endcase
   end
  
+  //*** clock cycle counter **//
+  always @(posedge clk)
+  begin
+    if(rst)
+      cycle <= 0;
+    else
+    begin
+      if(state != HLT)
+        cycle <= cycle + 1;
+    end
+  end
+
+
   // ** Register file write back data **//
   wire write_reg_en = ((isItype|isRtype|isJAL|isJALR|isLUI|isAUIPC) &(state==EXECUTE))|(isLtype & (state==WAIT_LOADING));
   wire [31:0] write_reg_data = (isItype |isRtype) ? alu_result:
