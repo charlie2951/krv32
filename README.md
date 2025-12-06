@@ -99,9 +99,10 @@ The CPU uses a finite-state machine with 8 states:
 |`BYTE`	|		5|	Load/store address preparation|
 |`WAIT_LOADING`|	6|	Wait for memory access completion|
 |`HLT`	|		7	|Halt on system instruction|
+
 **4. Instruction Decoding**
 Opcode extraction
-wire [4:0] opcode = data[6:2];
+`wire [4:0] opcode = data[6:2];`
 
 Instruction classification <p>
 |Type|	Opcode|	Examples|
@@ -130,78 +131,60 @@ Supported operations:
 
 ### ALU input selection
 
-alu_in1 = rs1
+`alu_in1 = rs1`
+`alu_in2 = depends on instruction type (rs2 or immediate)`
 
-alu_in2 = depends on instruction type (rs2 or immediate)
-
-6. Branch and Jump Logic
+**6. Branch and Jump Logic**
 
 Branch decision uses ALU subtraction and comparison signals:
 
-wire TAKE_BRANCH = ...
+`wire TAKE_BRANCH = ...`
 
 
-pcplus4 and pcplusimm are computed and used as next PC depending on instruction type.
+`pcplus4` and `pcplusimm` are computed and used as next PC depending on instruction type.
 
-7. Memory System
+**7. Memory System**
 Load/Store addressing
-
 Address from ALU result:
-
-load_store_addr = alu_result;
-
+`load_store_addr = alu_result;`
 Byte & halfword extraction
-
 Handles:
-
 LB/LBU
-
 LH/LHU
-
 LW
-
-Using bit index on load_store_addr.
-
+Using bit index on `load_store_addr`.
 Write mask generation
-
 Determines which bytes of the 32-bit bus to write during store instructions.
 
-8. Register File
+**8. Register File**
 
-32 registers (x0–x31)
-
-Writes occur in EXECUTE or WAIT_LOADING state
-
-x0 is permanently zero
-
-Write-back data selection:
-
-ALU result
-
-Load data
-
-PC+4 for jumps
-
-U-type immediates
-
-9. FSM Operation
+32 registers `(x0–x31)`<p>
+Writes occur in `EXECUTE` or `WAIT_LOADING` state <p>
+x0 is permanently zero <p>
+Write-back data selection:<p>
+ALU result<p>
+Load data<p>
+`PC+4` for jumps<p>
+U-type immediates<p>
+<p>
+**9. FSM Operation**
 Execution Timeline per Instruction
 
-WAIT
+`WAIT`<p>
 Initiates new instruction fetch (memory latency accommodation)
 
-FETCH
+`FETCH`<p>
 Gets instruction from memory
 
-DECODE
+`DECODE`<p>
 Reads register file and decodes instruction fields
 
-EXECUTE
+`EXECUTE`<p>
 ALU computes result
 Branch decision made
 Next PC calculated
 
-BYTE / WAIT_LOADING
+`BYTE / WAIT_LOADING` <p>
 Performs load/store address delay
 Generates strobes
 Waits for memory read data
