@@ -1,4 +1,4 @@
-# A subset of RISC-V architecture (RV32I) implementation for low-resource FPGA 
+# A subset of RISC-V architecture (RV32I) SoC implementation for FPGA 
 A tiny version of `RISC-V` for low-resource FPGA developed by the **Integrated System Design lab, School of Electronics, KIIT University** <p>
 **Objective**
 The main objective of this project is to prototype a RISC-V 32-bit CPU with an **RV32 base integer (RV32I) instruction set**. The CPU is coded using Verilog HDL from scratch and most of the instruction sets are implemented. The code is compatible with the GNU RISC-V toolchain (both assembler and compiler).
@@ -8,8 +8,10 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 3. Soft-IP, configurable as per your FPGA
 4. On-board LEDS can be interfaced using C SDK
 5. Fully functional UART Transmitter and Receiver (currently support 9600 baud rate only)
-6. Four-channel PWM output with a frequency of 500HZ and duty cycle 0-100%
-7. Tested in Tang9K Gowin FPGA and Artix-7 series FPGA embedded in Nexys-4 DDR board
+6. BRAM based BOOTLOADER support (need not to generate bitstream everytime while changing application code)
+7. Crypto core based on 32 bit AES, both encryption and decryption
+8. Four-channel PWM output with a frequency of 500HZ and duty cycle 0-100% (testing going on, not included at this stage)
+9. Tested in Artix-7 series FPGA embedded in Nexys-4 DDR board
    <p></p>
    
 ## RV32I CPU – Design Documentation (Version 3.0)
@@ -210,26 +212,21 @@ For debugging and behavioral simulation, use any Verilog compiler. I have used o
 *Program Memory space*: Default is 1Kbyte. Each location will contain 32-bit data. However, you can change it in code (progmem.v). Verilog Implementation: *reg[31:0] PROGMEM[0:1023]* <p>
 
  **FPGA Implementation**
-Synthesized and implemented in `Tang 9K series FPGA` with a clock speed of `27 MHz`. <p>
-
-*Pin Assignment of FPGA*(only for accessing on-board LEDs)
-![image](https://github.com/user-attachments/assets/b1e995d8-2de4-4b03-b7cc-a8b9e1b279ee)
-
-
-*Resource Utilization*
-![image](https://github.com/user-attachments/assets/69265fbb-0129-404b-a391-1bc28b14e25f) <p>
+Synthesized and implemented in `Artix-7 series FPGA in Nexys4-DDR board` with a clock speed of `100 MHz`. <p>
 
 ## GPIO mapping along with FPGA pin details
 
-| Peripheral | Base Address |   Tang9K FPGA used Pins   |      Nexys4- DDR FPGA used Pins      |
-|------------|--------------|:-------------------------:|:------------------------------------:|
-| LED        |  0x1000_0000 |     10,11,13, 14,15,16    | V11,V12, V14, V15, T16,U14, T15, V16 |
-| UART_TX    |  0x2000_0000 |             17            |                  D4                  |
-| UART_RX    |  0x3000_0000 |             18            |                  C4                  |
-| PWM        |  0x4000_0000 | 4 on-board LEDS  are used |     RGB LEDs- N16, R11, G14, N15     |
+| Peripheral | Nexys4- DDR FPGA used Pins      |
+|------------|:------------------------------------:|
+| LED        |  U16, U17, V17, R18, N14, J13, K15, H17  |
+| UART_TX    |  D4                  |
+| UART_RX    |  C4                  |
+| BOOT_Enable| J15 (High=BOOT mode, Low=Execution mode)|
+|AES Crypto IP| Internally accessable via memory mapped registers|
+
 
 <p>
-LED GPIO  is mapped to six onboard active-low enabled LEDs in Gowin Semiconductor's Sipeed Tang-9 series FPGA board. For Nexys-4 DDR board which uses Artix-7 series FPGA, LEDS are active high and total 8 LEDs are connected. Refer to the table mentioned above. <p>
+For Nexys-4 DDR board which uses Artix-7 series FPGA, LEDS are active high and total 8 LEDs are connected. Refer to the table mentioned above. <p>
 	
 **Flowchart** <p>
 The CPU is implemented in a straightforward way by keeping the code simple and understandable. Further optimization may be done to save hardware resources and speed. In this implementation, a multi-clock cycle is required to execute a single instruction. Currently, the R-type (ADD, SUB, AND, OR etc) and Immediate instructions (I-type) instructions (ADDI, ANDI, ORI, etc) consume 5 clock cycles, Load and store type instructions take 9 cycles, Branch and Jump instructions take 3 cycles, and others (LUI, AUIPC) take 4 cycles. Pipelining may be implemented in the future to speed up the execution. <p>
@@ -320,25 +317,24 @@ A dedicated makefile is provided (inside testcase located at (testcase/RISCV_GCC
 make clean
 make
 ```
-Copy the content of the generated firmware.txt file (you may exclude zeros) into your FPGA's firmware.txt and run the FPGA design flow or simulate it for debugging. You may open the *dumpfile* in text editor to see the generated assembly code from C code. This is useful for debugging. <p>
+Copy the content of the generated firmware.txt file (you may exclude zeros) into your FPGA's firmware.mem and run the FPGA design flow or simulate it for debugging. You may open the *dumpfile* in text editor to see the generated assembly code from C code. This is useful for debugging. <p>
 
 ***Points to Remember*** <p>
-1. *Program memory size:* The default size is 1KB. See the generated firmware.hex file. If it crosses 256 lines (= 256 x 4), excluding the last rows of ZEROS, the code will not fit into 1KB memory space. You have to increase it. For that, open Verilog file *progmem.v* and change the line *parameter MEM_SIZE=1024* to the required value. Also, edit the *Makefile* and change the variable *MEM_SIZE = 1024* to the required value. Then open the loader script *sections.lds* and change the LENGTH variable *mem : ORIGIN = 0x00000000, LENGTH = 1K* to the required value. <p>
-2. *Whether Verilog core support toolchain generated opcode?* :  See the *dumpfile* after C compilation and check the registers and instructions used. This version of CPU supports almost all commonly used instructions unless mentioned at the top of cpu.v <p>
+1. `Program memory size:` The default size is 2KB. See the generated `firmware.hex` file. If it crosses 512 lines (= 512 x 4), excluding the last rows of ZEROS, the code will not fit into 2KB memory space. Additionally you need to allocate some space for stack pointer which is generally pointing to last memory location as per start-up script in assembler. In that case, You have to increase memory size. For that, open Verilog file `progmem.v` and change the line `parameter MEM_SIZE=1024` to the required value. Also, edit the *Makefile* and change the variable *MEM_SIZE = 1024* to the required value. Then open the loader script *sections.lds* and change the LENGTH variable `mem : ORIGIN = 0x00000000, LENGTH = 1K` to the required value. Also open `start.s` file and change the MEM_SIZE line `.equ MEM_SIZE, 0x400 ' to `0x800` i.e 2kb <p>
+2. `Whether Verilog core support toolchain generated opcode?` :  See the `dumpfile` after C compilation and check the registers and instructions used. This version of CPU supports almost all commonly used instructions unless mentioned at the top of cpu.v <p>
 3. Traps or any other interrupts are not supported. CSR instructions are not supported in the current version. <p>
-***N.B.*** This is the initial version of CPU and may contain additional bugs. <p>
+***N.B.*** This is the working version of soft SoC and may contain additional bugs. <p>
 
-## Schematic of GOWIN Tang 9k FPGA
-![image](https://github.com/user-attachments/assets/23155624-dbff-4b06-b6cf-676d198d0315)
 ## FPGA Implementation Examples
 Go through the ***fpga*** directory to explore the compiled and implemented project in the Tang9K FPGA from GOWIN. Note that Tang9k uses an active low reset. Also LED port is 6 bits. So there are minor changes in reset logic (!rst instead of rst) and top module (top.v).
 
 ## Revision Note
-Version-3 is more hardware efficient in terms of FPGA resources. Previous versions (V1.0) consume 34% LUT, V2 takes only 14%. Program memory is isolated from the CPU core to bring more flexibility. GPIO logic is also isolated and implemented at top.v file (top module).
+SoC Version-4 is more hardware efficient in terms of FPGA resources and more enriched with added peripherals. Previous versions (V1.0) consume 34% LUT, V2 takes only 14%. Program memory is isolated from the CPU core to bring more flexibility. GPIO logic is also isolated and implemented at top.v file (top module).
 
 ***Known issues/bugs*** <p>
 Date: 16/04/2025: Bug: Arithmetic right shift SRA, SRAI not working<p>
 Date: 5/6/2025: Bug fixed `SRA` and `SRAI` instructions. No known bug.
+Date: 2/2/2026: Bug fixed in ALU
 
 No. of Visitor: <p>
 
