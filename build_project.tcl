@@ -39,6 +39,7 @@ if {[file exists $PROJECT_FILE]} {
 
 set DEVICE_PART "xc7a100tcsg324-1"  ;# Specify your target FPGA part number
 set RTL_DIR "./src/RTL"               ;# Path to the directory containing your RTL (.v/.vhd) files
+set MEM_FILE_DIR "./src/mem"
 set TOP_MODULE "top"   ;# Name of your top-level design entity
 
 # =================================================================
@@ -78,6 +79,11 @@ set rtl_files [list \
     $RTL_DIR/aes_decrypt.v \
 ]
 
+set mem_files [list \
+    $MEM_FILE_DIR/boot.mem \
+    $MEM_FILE_DIR/firmware.mem \
+]
+
 if {[llength $rtl_files] == 0} {
     puts "ERROR: The file list is empty. Please check the file names."
     error "Exiting script due to missing RTL sources."
@@ -93,6 +99,8 @@ add_files -fileset [get_filesets constrs_1] $SDC_FILE_PATH
 
 puts "SDC file $SDC_FILE_PATH added to the project."
 
+# Adding MEMORY files
+add_files $mem_files
 
 # Set the Top Module
 set_property top $TOP_MODULE [current_fileset]
