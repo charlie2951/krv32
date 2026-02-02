@@ -145,5 +145,24 @@ puts "Implementation Completed Successfully."
 # $PROJECT_DIR/$PROJECT_NAME.runs/impl_1/$TOP_MODULE.bit
 puts "--- SCRIPT FINISHED ---"
 puts "Bitstream file should be located in the impl_1 run directory."
+# Generating MCS file
+puts "------ Generating MCS file for Flash -----"
+# 1. Define your file paths and parameters
+set bit_file "$PROJECT_DIR/$PROJECT_NAME.runs/impl_1/$TOP_MODULE.bit"
+set mcs_file "$PROJECT_DIR/$PROJECT_NAME.runs/impl_1/$TOP_MODULE.mcs"
+set flash_size "16"
+set interface "SPIx4"
 
+# 2. Run the write_cfgmem command
+write_cfgmem -format mcs \
+             -size $flash_size \
+             -interface $interface \
+             -loadbit "up 0x00000000 $bit_file" \
+             -checksum \
+             -force \
+             -file $mcs_file
+
+puts "MCS file generation complete: $mcs_file"
+puts "MCS file should be located in the impl_1 run directory."
 close_project
+
