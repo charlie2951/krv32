@@ -1,0 +1,55 @@
+//UART GPIO unit to control UART transmitter
+//address range: DATA: 0x2000-0000
+//CTRL: 0x3000-0000
+// STATUS: 0x4000-0000
+//`include "uart_tx.v"
+module  uart_tx_gpio(
+    input [31:0] addr,
+    input rst, clk,
+    input [31:0] data_in,
+    input rd_strobe,
+    input [3:0] wr_strobe,
+    output reg [31:0] data_out,
+    output uart_tx
+  );
+
+  reg [31:0] uart_data, uart_control;
+
+  //flags
+  wire isUART_DATA= (addr[31:28]==4'b0010);
+  wire isUART_CTRL= (addr[31:28]==4'b0011);
+  wire isUART_STATUS= (addr[31:28]==4'b0100);
+
+  wire o_ready;
+
+  initial
+  begin
+    uart_data <= 0;
+    uart_control <= 0;
+  end
+
+  always @(posedge clk)
+  begin
+    if(rst)
+    begin
+      uart_data <= 0;
+      uart_control <= 0;
+    end
+    else if(rd_strobe && isUART_STATUS)
+      data_out <= {31'h0, o_ready};
+    else if(|wr_strobe && isUART_DATA)
+      uart_data <= data_in;
+    else if(|wr_strobe && isUART_CTRL)
+      uart_control <= data_in;
+     // uart_control <= 0; //only valid for 1 cycle 
+  end
+
+  //Instantiate UART transmitter module here
+  uart_tx tx0(.clk(clk), .rst_n(!rst),
+              .tx_data(uart_data[7:0]),
+              .tx_data_valid(uart_control[0]),
+              .tx_data_ready(o_ready),
+              .tx_pin(uart_tx)
+             );
+
+endmodule
