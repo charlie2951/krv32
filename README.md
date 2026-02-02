@@ -26,8 +26,19 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 4. Program the `.mcs` file into flash (separate instruction available below :point_down:). Now the SoC is ready to interact and to upload `.hex` file using bootloader script.
 5. Now change the mode to `boot` and upload `.hex` file. For details, see the `bootloader` directory's `README` file. 
 
-## Steps for writing MCS file into FPGA Board's Flash memory (Tested on Nexys4-DDR with Vivado 2024.2)
-1. 
+## Steps for writing MCS file into FPGA Board's Flash memory (Tested on Nexys4-DDR board with Vivado 2024.2)
+1. Open Vivado GUI and Open Hardware manager after connecting the board to pc.
+   <img width="605" height="380" alt="image" src="https://github.com/user-attachments/assets/0b190e41-a44a-4e24-8d88-d8b7e99a4878" />
+2. Click on `open-target` followed by `Auto-connect`.
+3. Select the `Add configuration memory device` after right click on device `xc7a100t_0` as shown in figure below.
+   <img width="412" height="383" alt="image" src="https://github.com/user-attachments/assets/c844924d-fe56-44e1-8b89-3b8aafaf8081" />
+4. Select the proper flash part as shown below. This may vary from board to board, even with same board with different version. Check your product manual carefully.
+   <img width="764" height="367" alt="image" src="https://github.com/user-attachments/assets/d031add0-1a5e-40be-a11d-b3b5ad2fb8f8" />
+5. Browse and select the MCS file which should be inside `impl_1` folder of project dir. Program the flash.
+   <img width="324" height="440" alt="image" src="https://github.com/user-attachments/assets/c6484a6b-ecd4-4cea-ad51-a3d68b55cc4e" />
+
+
+
 ## RV32I CPU – Design Documentation (Version 3.0)
 **Architecture:** Multi-cycle controlled by Finite-State-Machine (FSM) 
 **ISA Support:** RV32I (Base Integer Instructions)
