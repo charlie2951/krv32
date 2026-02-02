@@ -1,91 +1,60 @@
-//UART GPIO unit to control UART transmitter
-//address range: RXDATA: 0x2000_0010
-//RXCTRL: 0x2000_0014
-// RXSTATUS: 0x2000_0018
-//
-//UART GPIO unit to control UART transmitter
-//address range: DATA: 0x2000_0000
-//CTRL: 0x2000_0004
-// STATUS: 0x2000_0008
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 13.01.2026 23:08:51
+// Design Name: 
+// Module Name: UART_wrapper
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 
 
-module  UART_GPIO  #(parameter CLK_FRE = 27, BAUD_RATE = 9600)
-(
+module  uart_wrapper(
     input [31:0] addr,
     input rst, clk,
     input [31:0] data_in,
     input rd_strobe,
     input [3:0] wr_strobe,
-    output reg [31:0] data_out,
-    input uart_rx, //serial data in uart receive
-    output uart_tx //serial data out from uart for transmission
+    output [31:0] data_out,
+    output uart_tx,
+    input uart_rx
   );
-
-  reg [31:0] uart_rx_data, uart_rx_status, uart_rx_control;
-  reg [31:0] uart_tx_data, uart_tx_control;
-
-  //flags
-  wire isUART_RXDATA    = (addr==32'h20000010);//0x5
-  wire isUART_RXCTRL    = (addr==32'h20000014);//0x6
-  wire isUART_RXSTATUS  = (addr==32'h20000018);//0x7
-
-  wire o_rx_ready;
-  wire [7:0] rx_data;
-  wire o_tx_ready;
-//tx part
-  //flags
-  wire isUART_TXDATA    = (addr==32'h20000000);//0x0002_0000
-  wire isUART_TXCTRL    = (addr==32'h20000004);//0x0003_0000
-  wire isUART_TXSTATUS  = (addr==32'h20000008);//0x0004_0000
- 
-
-  initial
-  begin
-    uart_rx_control <= 0;
-    uart_tx_data <= 0;
-    uart_tx_control <= 0;
-  end
-
-  always @(posedge clk)
-  begin
-    if(!rst)
-    begin
-      uart_rx_control <= 0;
-      uart_tx_data <= 0;
-      uart_tx_control <= 0;
-    end
-// rx part   control logic
-     if(rd_strobe && isUART_RXSTATUS)
-      data_out <= o_rx_ready;
-     else if(rd_strobe && isUART_RXDATA)
-      data_out <= {24'h0, rx_data};
-     else if(|wr_strobe && isUART_RXCTRL)
-      uart_rx_control <= data_in;
-//transmitter part control logic
-     else if(rd_strobe && isUART_TXSTATUS)
-      data_out <= {31'h0, o_tx_ready};
-    else if(|wr_strobe && isUART_TXDATA)
-      uart_tx_data <= data_in;
-    else if(|wr_strobe && isUART_TXCTRL)
-      uart_tx_control <= data_in;
-  end
-
-
-   //Instantiate UART receiver module here
-  uart_rx #(.CLK_FRE(27), .BAUD_RATE(9600)) rx0(.clk(clk), .rst_n(rst),
-              .rx_data(rx_data),
-              .rx_data_valid(o_rx_ready),
-              .rx_data_ready(uart_rx_control[0]),
-              .rx_pin(uart_rx)
-             );
-
- //Instantiate UART transmitter module here
-  uart_tx #(.CLK_FRE(27), .BAUD_RATE(9600)) tx0(.clk(clk), .rst_n(rst),
-              .tx_data(uart_tx_data[7:0]),
-              .tx_data_valid(uart_tx_control[0]),
-              .tx_data_ready(o_tx_ready),
-              .tx_pin(uart_tx)
-             );
+  
+  wire [31:0] tx_data_out, rx_data_out;
+  
+  assign data_out = (addr[31:28]==4'b0101)|(addr[31:28]==4'b0111)?rx_data_out:
+                    (addr[31:28]==4'b0100)? tx_data_out:32'h0;
+  //uart tx gpio instantiation
+  uart_tx_gpio uart_tx_regs(
+    .addr(addr),
+    .rst(rst), .clk(clk),
+    .data_in(data_in),
+    .rd_strobe(rd_strobe),
+    .wr_strobe(wr_strobe),
+    .data_out(tx_data_out),
+    .uart_tx(uart_tx)
+  );
+  
+  //uart Rx gpio instantiation
+  uart_rx_gpio uart_rx_regs(
+    .addr(addr),
+    .rst(rst), .clk(clk),
+    .data_in(data_in),
+    .rd_strobe(rd_strobe),
+    .wr_strobe(wr_strobe),
+    .data_out(rx_data_out),
+    .uart_rx(uart_rx)
+  );
   
 endmodule
-
