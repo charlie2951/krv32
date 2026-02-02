@@ -101,13 +101,6 @@ bootmem boot_0(
 .wr_strobe(wr_strobe & {4{isBOOT}})
 );
 
-//connect ILA for debug
-ila_0 ILA(
-.clk(clk),
-.probe0(addr),
-.probe1(mem_rdata),
-.probe2(mem_wdata),
-.probe3(boot_rdata)
-);
+
 
 endmodule
