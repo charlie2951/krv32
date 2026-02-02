@@ -19,13 +19,15 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 `bootloader`: Contain python script to upload HEX file into FPGA BRAM i.e. program memory via UART.<p>
 `SDK`: Contains the C headers and application code to be compiled using RISC-V GNU toolchain<p>
 
-## Steps to build the Vivado project
+## Steps to build the Vivado project (Tested on Vivado 2024.2)
 1. Clone the repo.
-2. For windows user, open Vivado TCL prompt and navigate to the cloned directory inside which the `build_project.tcl' file is present. For Linux user, you can open the shell inside the cloned repo directory.
-3. Source the configuration `TCL`  script by typing `source build_project.tcl`. Everything will be automatically compiled and synthesis and implementation followed by bit file and MCS file generation will takes place.
-4. Program the `.mcs` file into flash. Now the SoC is ready to interact and to upload `.hex` file using bootloader script.
-5. Now change the mode to `boot` and upload `hex` file. For details, see the `bootloader` directory's `README` file. 
+2. For windows user, open Vivado TCL prompt and navigate to the cloned directory inside which the `build_project.tcl` file is present. For example, use the following as a reference. Type the following to change the directory to cloned repo (check path on your pc. Also, in TCL script, the slashes are opposite to the Windows system) `C:\Users\subir\Downloads\krv32-4.0\krv32-4.0`. For Linux user, you can open the shell inside the cloned repo directory.
+3. Source the configuration `TCL`  script by typing `source build_project.tcl`. Everything will be automatically compiled and synthesis and implementation followed by bit file and MCS file generation will takes place. If you already have a project in the same name/ you are building the project for 2nd time, run the script 2 times. For the 1st time it will delete previous project and 2nd time it will build a fresh project from the beginning.
+4. Program the `.mcs` file into flash (separate instruction available below :point_down:). Now the SoC is ready to interact and to upload `.hex` file using bootloader script.
+5. Now change the mode to `boot` and upload `.hex` file. For details, see the `bootloader` directory's `README` file. 
 
+## Steps for writing MCS file into FPGA Board's Flash memory (Tested on Nexys4-DDR with Vivado 2024.2)
+1. 
 ## RV32I CPU – Design Documentation (Version 3.0)
 **Architecture:** Multi-cycle controlled by Finite-State-Machine (FSM) 
 **ISA Support:** RV32I (Base Integer Instructions)
