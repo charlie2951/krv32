@@ -11,16 +11,18 @@ module progmem(
     output reg [31:0] data_out
 
   );
-  parameter MEM_SIZE = 1024;
+  parameter MEM_SIZE = 2048;
   reg [31:0] PROGMEM[0:MEM_SIZE-1]; //define program mem with 1024 location
   wire [29:0] mem_loc = addr[31:2];
+  
   initial
   begin
-    $readmemh("firmware.hex", PROGMEM);//load firmware into memory
+    $readmemh("firmware.mem", PROGMEM);//load firmware into memory
   end
+  
   always @(posedge clk)
   begin
-    if(!rst)
+    if(rst)
       data_out <= 32'h0;
     else if(rd_strobe) //data read from memory
       data_out <= PROGMEM[mem_loc];
