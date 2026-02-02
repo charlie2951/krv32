@@ -13,7 +13,12 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 8. Four-channel PWM output with a frequency of 500HZ and duty cycle 0-100% (testing going on, not included at this stage)
 9. Tested in Artix-7 series FPGA embedded in Nexys-4 DDR board
    <p></p>
-   
+
+## Directory Description
+`src`: contains all source code i.e. RTL code and constraints and tcl file for creating vivado projects.<p>
+`bootloader`: Contain python script to upload HEX file into FPGA BRAM i.e. program memory via UART.<p>
+`SDK`: Contains the C headers and application code to be compiled using RISC-V GNU toolchain<p>
+
 ## RV32I CPU – Design Documentation (Version 3.0)
 **Architecture:** Multi-cycle controlled by Finite-State-Machine (FSM) 
 **ISA Support:** RV32I (Base Integer Instructions)
