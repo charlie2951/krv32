@@ -23,7 +23,14 @@ module KRV32(
     output reg [31:0] cycle,
     output [3:0] mem_wstrb //write strobe mask for writing data to mem
   );
+    //Declaration of temporary wires
+    wire [31:0] alu_in1, alu_in2;
+    wire  [7:0] LOAD_byte;
+    wire [3:0] STORE_wmask;
+    wire [31:0] alu_result;
 
+    //-----------------------//
+//Declaration of intermediate registers
   reg [31:0] regfile[0:31];//Register file with X0 to X31;
   reg [31:0] addr, data_rs1, data_rs2; //address bus
   reg [31:0] data; //data bus
@@ -85,9 +92,9 @@ module KRV32(
 
   // Note : for ADD and SUB, funct3 is same but funct7[5] is different
 
-  wire [31:0] alu_result = (funct3==3'b000) & isRtype & ~funct7[5]? ADD: //ADD
+  assign alu_result = (funct3==3'b000) & isRtype & ~funct7[5]? ADD: //ADD
        (funct3==3'b000) & isItype  ? ADD: //ADD
-       (funct3==3'b000) & ~(isStype|isLtype) & funct7[5]? SUB[31:0]: //SUB
+    (funct3==3'b000) & ~(isStype|isLtype| isJALR) & funct7[5]? SUB[31:0]: //SUB
        (funct3==3'b100)? XOR: //XOR
        (funct3==3'b110)? OR: //OR
        (funct3==3'b111)? AND: //AND
@@ -99,8 +106,8 @@ module KRV32(
        (isStype | isLtype | isJALR) ? ADD:0; //S-type, L type, for mem location calc
 
   //source1 and source 2 data for ALU operation
-  wire  [31:0] alu_in1 = data_rs1; //source is always rs1 for both type
-  wire [31:0] alu_in2 = (isRtype | isBtype)? data_rs2 : (isItype | isLtype |isJALR)? I_data:S_data;//ALU req for comparison in Btype
+  assign alu_in1 = data_rs1; //source is always rs1 for both type
+  assign alu_in2 = (isRtype | isBtype)? data_rs2 : (isItype | isLtype |isJALR)? I_data:S_data;//ALU req for comparison in Btype
   wire [31:0] pcplus4 = addr + 4;
   wire [31:0] pcplusimm = addr + (isBtype ? B_data: isJAL ? J_data:isAUIPC ? U_data: 0);
   /* LOAD STORE OPERATION
@@ -118,12 +125,12 @@ module KRV32(
 
   wire [15:0] LOAD_halfword = load_store_addr[1] ? mem_rdata[31:16] : mem_rdata[15:0];
 
-  wire  [7:0] LOAD_byte =
+  assign LOAD_byte =
         load_store_addr[0] ? LOAD_halfword[15:8] : LOAD_halfword[7:0];
 
   // The mask for memory-write.
 
-  wire [3:0] STORE_wmask = mem_byteAccess ?  (load_store_addr[1] ?
+  assign STORE_wmask = mem_byteAccess ?  (load_store_addr[1] ?
        (load_store_addr[0] ? 4'b1000 : 4'b0100) :
        (load_store_addr[0] ? 4'b0010 : 4'b0001)) :
        mem_halfwordAccess ? (load_store_addr[1] ? 4'b1100 : 4'b0011) : 4'b1111;
@@ -241,3 +248,4 @@ assign mem_wstrb = {4{(state==WAIT_LOADING) & isStype}} & STORE_wmask;
   end
 
 endmodule
+
