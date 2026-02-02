@@ -9,13 +9,13 @@ Jump implementing
 Bug: Arithmetic right shift SRA, SRAI not working
 Bug: LH, LB, SH, SB, LBU, LHU not working
 Revised on: 16/04/2025
-Bug fixed on 24/4/2025: LB, SB, LH, SH tested 
+Bug fixed on 1/2/2026: JALR bug fixed on ALU part 
 LBU, LHU: implemented but not tested
 Reordering of state variable, No of state reduced
-Revision: 26/9/2025: BOOT input added: BOOT=1 -> Bootloader, BOOT=0-> execution
 */
-module KRV32(
-    input rst, clk,boot,//boot=1 means firmware loading in progmem (planned, not working now)
+module cpu(
+    input rst, clk,
+    input boot_en,
     input [31:0] mem_rdata,//8 bit data chunk from memory
     output [31:0] mem_addr,
     output [31:0] mem_wdata,
@@ -23,18 +23,14 @@ module KRV32(
     output reg [31:0] cycle,
     output [3:0] mem_wstrb //write strobe mask for writing data to mem
   );
-    //Declaration of temporary wires
-    wire [31:0] alu_in1, alu_in2;
-    wire  [7:0] LOAD_byte;
-    wire [3:0] STORE_wmask;
-    wire [31:0] alu_result;
+  // Temporary wires
+  wire [31:0] alu_in1, alu_in2;
+  wire [7:0] LOAD_byte;
 
-    //-----------------------//
-//Declaration of intermediate registers
+// Intermediate registers
   reg [31:0] regfile[0:31];//Register file with X0 to X31;
   reg [31:0] addr, data_rs1, data_rs2; //address bus
   reg [31:0] data; //data bus
- // reg boot_flag;
   // reg [31:0] load_data_tmp;
   reg [3:0] state; //state register
   parameter RESET=0, WAIT=1, FETCH=2, DECODE=3, EXECUTE=4, BYTE=5, WAIT_LOADING=6, HLT=7; //Different states
@@ -92,9 +88,9 @@ module KRV32(
 
   // Note : for ADD and SUB, funct3 is same but funct7[5] is different
 
-  assign alu_result = (funct3==3'b000) & isRtype & ~funct7[5]? ADD: //ADD
+  wire [31:0] alu_result = (funct3==3'b000) & isRtype & ~funct7[5]? ADD: //ADD
        (funct3==3'b000) & isItype  ? ADD: //ADD
-    (funct3==3'b000) & ~(isStype|isLtype| isJALR) & funct7[5]? SUB[31:0]: //SUB
+       (funct3==3'b000) & ~(isStype|isLtype|isJALR) & funct7[5]? SUB[31:0]: //SUB, bug fixed for JALR
        (funct3==3'b100)? XOR: //XOR
        (funct3==3'b110)? OR: //OR
        (funct3==3'b111)? AND: //AND
@@ -130,7 +126,7 @@ module KRV32(
 
   // The mask for memory-write.
 
-  assign STORE_wmask = mem_byteAccess ?  (load_store_addr[1] ?
+  wire [3:0] STORE_wmask = mem_byteAccess ?  (load_store_addr[1] ?
        (load_store_addr[0] ? 4'b1000 : 4'b0100) :
        (load_store_addr[0] ? 4'b0010 : 4'b0001)) :
        mem_halfwordAccess ? (load_store_addr[1] ? 4'b1100 : 4'b0011) : 4'b1111;
@@ -155,21 +151,20 @@ assign mem_wstrb = {4{(state==WAIT_LOADING) & isStype}} & STORE_wmask;
   begin
     cycle = 0;
     state=0;
-   // addr = boot ? 32'h00080000:32'h0;//check whether boot mode ot execution mode
+    data=0;
+    addr = boot_en ? 32'hA0000000 : 32'h00000000;//need to check
     regfile[0] = 0;//X0 reg is always 0
   end
-  
-   always @(posedge clk)
+
+  //clock dependent operation
+
+  always @(posedge clk)
   begin
     if(rst)
     begin
-      //addr <= boot ? 32'h00080000:32'h0;
-      if(boot)
-      addr <= 32'h00080000;
-      else
-      addr <= 32'h0;
+      addr <= boot_en ? 32'hA0000000 : 32'h00000000;
       state <= RESET;
-      data <= 32'h0;
+      data <= 32'h00000000;
     end
     else
     case(state)
@@ -239,7 +234,7 @@ assign mem_wstrb = {4{(state==WAIT_LOADING) & isStype}} & STORE_wmask;
        isAUIPC?pcplusimm:0;
 
 
-
+//write back data into reg file
   always @(posedge clk)
   begin
     if (write_reg_en)
@@ -248,4 +243,3 @@ assign mem_wstrb = {4{(state==WAIT_LOADING) & isStype}} & STORE_wmask;
   end
 
 endmodule
-
