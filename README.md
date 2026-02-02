@@ -19,6 +19,13 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 `bootloader`: Contain python script to upload HEX file into FPGA BRAM i.e. program memory via UART.<p>
 `SDK`: Contains the C headers and application code to be compiled using RISC-V GNU toolchain<p>
 
+## Steps to build the Vivado project
+1. Clone the repo.
+2. For windows user, open Vivado TCL prompt and navigate to the cloned directory inside which the `build_project.tcl' file is present. For Linux user, you can open the shell inside the cloned repo directory.
+3. Source the configuration `TCL`  script by typing `source build_project.tcl`. Everything will be automatically compiled and synthesis and implementation followed by bit file and MCS file generation will takes place.
+4. Program the `.mcs` file into flash. Now the SoC is ready to interact and to upload `.hex` file using bootloader script.
+5. Now change the mode to `boot` and upload `hex` file. For details, see the `bootloader` directory's `README` file. 
+
 ## RV32I CPU – Design Documentation (Version 3.0)
 **Architecture:** Multi-cycle controlled by Finite-State-Machine (FSM) 
 **ISA Support:** RV32I (Base Integer Instructions)
@@ -216,8 +223,6 @@ Refer to the RiSC-V official page and/or other tutorials. Some useful links are 
 For debugging and behavioral simulation, use any Verilog compiler. I have used open-source Icarus Verilog with GTKWave waveform viewer. A sample testbench is added for debugging and test purposes. Modify the testbench as per your requirements.<p>
 *Program Memory space*: Default is 1Kbyte. Each location will contain 32-bit data. However, you can change it in code (progmem.v). Verilog Implementation: *reg[31:0] PROGMEM[0:1023]* <p>
 
- **FPGA Implementation**
-Synthesized and implemented in `Artix-7 series FPGA in Nexys4-DDR board` with a clock speed of `100 MHz`. <p>
 
 ## GPIO mapping along with FPGA pin details
 
