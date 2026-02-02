@@ -1,9 +1,10 @@
 # Tcl Script to create a Vivado project, add sources, synthesize, implement, and generate bitstream
+puts "Created by Dr S.K.Maity, School of Electronics Engg, KIIT"
 
 # =================================================================
 # 1. Project Setup Variables (Modify these variables as per your design)
 # =================================================================
-set PROJECT_NAME "krv32_socv01"
+set PROJECT_NAME "krv32_soc_v02"
 set PROJECT_DIR "./$PROJECT_NAME"
 set PROJECT_FILE "$PROJECT_DIR/$PROJECT_NAME.xpr"
 
@@ -37,7 +38,7 @@ if {[file exists $PROJECT_FILE]} {
 }
 
 set DEVICE_PART "xc7a100tcsg324-1"  ;# Specify your target FPGA part number
-set RTL_DIR "./RTL"               ;# Path to the directory containing your RTL (.v/.vhd) files
+set RTL_DIR "./src/RTL"               ;# Path to the directory containing your RTL (.v/.vhd) files
 set TOP_MODULE "top"   ;# Name of your top-level design entity
 
 # =================================================================
@@ -65,10 +66,16 @@ set rtl_files [list \
     $RTL_DIR/top.v \
     $RTL_DIR/cpu.v \
     $RTL_DIR/progmem.v \
+    $RTL_DIR/bootmem.v \
     $RTL_DIR/led_gpio.v \
-    $RTL_DIR/uart_wrapper.v \
+    $RTL_DIR/UART_wrapper.v \
+    $RTL_DIR/uart_rx_gpio.v \
+    $RTL_DIR/uart_tx_gpio.v \
     $RTL_DIR/uart_tx.v \
     $RTL_DIR/uart_rx.v \
+    $RTL_DIR/crypto_wrapper.v \
+    $RTL_DIR/aes_encrypt.v \
+    $RTL_DIR/aes_decrypt.v \
 ]
 
 if {[llength $rtl_files] == 0} {
@@ -79,7 +86,7 @@ if {[llength $rtl_files] == 0} {
 add_files $rtl_files
 
 # Define the path to your constraint file
-set SDC_FILE_PATH "./top.xdc"
+set SDC_FILE_PATH "./src/top.xdc"
 
 # Add the SDC file to the constraints fileset
 add_files -fileset [get_filesets constrs_1] $SDC_FILE_PATH
@@ -130,4 +137,5 @@ puts "Implementation Completed Successfully."
 # $PROJECT_DIR/$PROJECT_NAME.runs/impl_1/$TOP_MODULE.bit
 puts "--- SCRIPT FINISHED ---"
 puts "Bitstream file should be located in the impl_1 run directory."
+
 close_project
