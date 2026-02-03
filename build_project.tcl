@@ -77,6 +77,12 @@ set rtl_files [list \
     $RTL_DIR/crypto_wrapper.v \
     $RTL_DIR/aes_encrypt.v \
     $RTL_DIR/aes_decrypt.v \
+    $RTL_DIR/uart1_wrapper.v \
+    $RTL_DIR/uart1_rx_gpio.v \
+    $RTL_DIR/uart1_tx_gpio.v \
+    $RTL_DIR/uart1_tx.v \
+    $RTL_DIR/uart1_rx.v \
+
 ]
 
 set mem_files [list \
@@ -164,5 +170,5 @@ write_cfgmem -format mcs \
 
 puts "MCS file generation complete: $mcs_file"
 puts "MCS file should be located in the impl_1 run directory."
-close_project
 
+close_project
