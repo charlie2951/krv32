@@ -13,6 +13,7 @@ Usages:
 `make`: will build the default **main.c** <p>
 `make APP=appname`: will build the specific code mentioned in file `appname.c`<p>
 `make clean`: will clean all temporary files.<p>
+Then upload the generated `firmware.hex` using provided python script `boot.py` by typing: <p> `python3 boot.py COM_PORT_NO firmware.hex`
 
 ## Driver API 
 ### Header:`delay.h`
