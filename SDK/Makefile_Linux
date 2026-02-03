@@ -58,4 +58,4 @@ $(ASM_SRC_DIR)/start.o: $(ASM_SRC_DIR)/start.S
 
 clean:
 	@echo "Cleaning project..."
-	rm -r *.o $(INC_DIR)/*.o dumpfile *.elf *.hex *.bin *.map 2>nul || rm -r *.o $(INC_DIR)/*.o dumpfile *.elf *.hex *.bin *.map
+	rm -r *.o $(INC_DIR)/*.o dumpfile *.elf *.hex *.bin *.map 2>nul || rm -f *.o $(INC_DIR)/*.o dumpfile *.elf *.hex *.bin *.map
