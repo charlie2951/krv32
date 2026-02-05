@@ -1,61 +1,98 @@
-GCC = riscv64-unknown-elf-gcc
-OBJ_DUMP = riscv64-unknown-elf-objdump
-OBJ_COPY = riscv64-unknown-elf-objcopy
+# -------------------------------------------------
+# Toolchain
+# -------------------------------------------------
+GCC       = riscv64-unknown-elf-gcc
+OBJ_DUMP  = riscv64-unknown-elf-objdump
+OBJ_COPY  = riscv64-unknown-elf-objcopy
 
-# --- Configuration ---
-# Default application name if none is provided
+# -------------------------------------------------
+# Configuration
+# -------------------------------------------------
 APP ?= main
 
-# Directories
-C_SRC_DIR = .
-INC_DIR = include
+C_SRC_DIR   = .
+INC_DIR     = include
 ASM_SRC_DIR = .
-LDS_SRC_DIR = . 
-RESULT_DIR = .
-MEM_SIZE = 1024
+RESULT_DIR  = .
 
-# Driver object files
-DRV_OBJS = $(INC_DIR)/uart.o $(INC_DIR)/led_driver.o $(INC_DIR)/delay.o
+DRV_OBJS = \
+	$(INC_DIR)/uart.o \
+	$(INC_DIR)/led_driver.o \
+	$(INC_DIR)/delay.o
 
+# -------------------------------------------------
+# Compiler / Linker Flags
+# -------------------------------------------------
+CFLAGS = -mabi=ilp32 -march=rv32i -Og --std=c99 \
+         -ffreestanding -nostdlib \
+         -ffunction-sections -fdata-sections
+
+LDFLAGS = \
+	-Wl,--build-id=none \
+	-Wl,-Bstatic \
+	-Wl,--gc-sections \
+	-Wl,-T,sections.lds \
+	-Wl,-Map,$(RESULT_DIR)/firmware.map \
+	-Wl,--strip-debug
+
+# -------------------------------------------------
+# Phony Targets
+# -------------------------------------------------
 .PHONY: all clean build_info
 
-# --- Main Targets ---
-
+# -------------------------------------------------
+# Main Targets
+# -------------------------------------------------
 all: build_info $(RESULT_DIR)/firmware.hex $(RESULT_DIR)/dumpfile
 
-# Just a helper to show what is being built
 build_info:
 	@echo "--------------------------------------"
 	@echo "Building Application: $(APP).c"
 	@echo "--------------------------------------"
 
+# -------------------------------------------------
+# Output Conversions
+# -------------------------------------------------
 $(RESULT_DIR)/firmware.hex: $(RESULT_DIR)/firmware.bin makehex.py
 	python3 makehex.py $< > $@
 
-$(RESULT_DIR)/firmware.bin: $(C_SRC_DIR)/firmware.elf
+$(RESULT_DIR)/firmware.bin: $(RESULT_DIR)/firmware.elf
 	$(OBJ_COPY) -O binary $< $@
 
-$(RESULT_DIR)/dumpfile: $(C_SRC_DIR)/firmware.elf
-	$(OBJ_DUMP) -d $^ > $@
+$(RESULT_DIR)/dumpfile: $(RESULT_DIR)/firmware.elf
+	$(OBJ_DUMP) -d $< > $@
 
-# Linking logic: Now depends on $(APP).o
-$(C_SRC_DIR)/firmware.elf: $(C_SRC_DIR)/$(APP).o $(ASM_SRC_DIR)/start.o $(DRV_OBJS) sections.lds
-	$(GCC) -Og -mabi=ilp32 -march=rv32i -ffreestanding -nostdlib -o $@ \
-		-Wl,--build-id=none,-Bstatic,-T,sections.lds,-Map,$(RESULT_DIR)/firmware.map,--strip-debug \
-		$(ASM_SRC_DIR)/start.o $(C_SRC_DIR)/$(APP).o $(DRV_OBJS) -lgcc
+# -------------------------------------------------
+# Linking
+# -------------------------------------------------
+$(RESULT_DIR)/firmware.elf: \
+	$(C_SRC_DIR)/$(APP).o \
+	$(ASM_SRC_DIR)/start.o \
+	$(DRV_OBJS) \
+	sections.lds
+	$(GCC) $(CFLAGS) -o $@ \
+		$(ASM_SRC_DIR)/start.o \
+		$(C_SRC_DIR)/$(APP).o \
+		$(DRV_OBJS) \
+		$(LDFLAGS) \
+		-lgcc
 
-# Compile the dynamic APP source file
+# -------------------------------------------------
+# Compilation Rules
+# -------------------------------------------------
 $(C_SRC_DIR)/$(APP).o: $(C_SRC_DIR)/$(APP).c
-	$(GCC) -c -I$(INC_DIR) -mabi=ilp32 -march=rv32i -Og --std=c99 -ffreestanding -nostdlib -o $@ $<
+	$(GCC) -c $(CFLAGS) -I$(INC_DIR) -o $@ $<
 
-# Pattern rule for drivers
 $(INC_DIR)/%.o: $(INC_DIR)/%.c
-	$(GCC) -c -I$(INC_DIR) -mabi=ilp32 -march=rv32i -Og --std=c99 -ffreestanding -nostdlib -o $@ $<
+	$(GCC) -c $(CFLAGS) -I$(INC_DIR) -o $@ $<
 
-# Compile assembly
 $(ASM_SRC_DIR)/start.o: $(ASM_SRC_DIR)/start.S
 	$(GCC) -c -mabi=ilp32 -march=rv32i -o $@ $<
 
+# -------------------------------------------------
+# Clean
+# -------------------------------------------------
 clean:
 	@echo "Cleaning project..."
-	del *.o $(INC_DIR)\*.o dumpfile *.elf *.hex *.bin *.map 2>nul || del *.o $(INC_DIR)\*.o dumpfile *.elf *.hex *.bin *.map
+	del *.o $(INC_DIR)\*.o *.elf *.hex *.bin *.map dumpfile 2>nul || \
+	rm -f *.o $(INC_DIR)/*.o *.elf *.hex *.bin *.map dumpfile
