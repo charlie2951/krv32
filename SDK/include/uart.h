@@ -27,7 +27,8 @@ typedef struct {
 
 // Function Prototypes (Passing the UART handle)
 void uart_send(UART_TypeDef *UARTx, uint8_t my_char);
-uint32_t uart_receive(UART_TypeDef *UARTx);
-void uart_sendline(UART_TypeDef *UARTx, uint8_t *my_str);
+uint8_t uart_receive(UART_TypeDef *UARTx);
+void uart_sendline(UART_TypeDef *UARTx, const uint8_t *my_str);
+void uart_init(UART_TypeDef *UARTx);
 
 #endif
