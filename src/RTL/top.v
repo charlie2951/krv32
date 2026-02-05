@@ -5,20 +5,20 @@ module top(
     output uart0_tx,
     input uart1_rx,
     output uart1_tx,
-    output [7:0] leds
+    inout [15:0] gpio
   );
   wire [31:0] mem_rdata, mem_wdata, addr;
   wire rstrb;
   wire [3:0] wr_strobe;
   wire [31:0] led_rdata,uart0_data, uart1_data,crypto_data;
-  wire [31:0] boot_rdata;
+  wire [31:0] boot_rdata, gpio_rdata;
 //select device
   wire isMEM = (addr[31:16]==16'h0000);
-  wire isLED = (addr[31:16]==16'h1000);
+  wire isGPIO = (addr[31:16]==16'h1000);
   wire isBOOT =(addr[31:16]==16'hA000);
  //UART0 and UART-1 data read back by cpu
   wire isUART0 = (addr[31:16]==16'h2000);
-   wire isUART1 = (addr[31:16]==16'h3000);
+  wire isUART1 = (addr[31:16]==16'h3000);
   //Crypto data out read back by cpu
   wire isenc_valid_out= (addr[31:24]==8'h05);
   wire isenc_data_out= (addr[31:24]==8'h06);
@@ -29,7 +29,8 @@ module top(
 //Selecting input data to CPU from memory or peripheral devices based on address
  wire [31:0] cpu_rdata = isMEM ? mem_rdata:
                          isBOOT ? boot_rdata:
-                        isLED ? led_rdata:
+                        //isLED ? led_rdata:
+			isGPIO ? gpio_rdata:
                         isUART0 ? uart0_data:
                         isUART1 ? uart1_data:
                         iscrypto?crypto_data:32'h0;
@@ -58,6 +59,7 @@ module top(
             .data_out(mem_rdata)
           );
 
+/*
 // Mapping LED GPIO
 led_gpio led0(.rst(!rst), .clk(clk),
                 .addr(addr),
@@ -67,7 +69,7 @@ led_gpio led0(.rst(!rst), .clk(clk),
                 .data_out(led_rdata),
                 .leds(leds)
                 );
-
+*/
 //mapping uart0 wrapper gpio regs
 uart0_wrapper uart0_mem_map(.rst(!rst), .clk(clk),
                 .addr(addr),
@@ -111,5 +113,16 @@ bootmem boot_0(
 .wr_strobe(wr_strobe & {4{isBOOT}})
 );
 
+//GPIO controller
+gpio_controller gpio_0(
+.clk(clk),
+.rst_n(!rst),
+.addr(addr),
+.rd_strobe(rstrb & isGPIO),
+.data_out(gpio_rdata),
+.data_in(mem_wdata),
+.wr_strobe(wr_strobe & {4{isGPIO}}),
+.gpio_pins(gpio) //16 gpio
+);
 
 endmodule
