@@ -24,9 +24,9 @@ UART-1 is the native UART connected to USB to UART bridge in hardware.<p>
 UART-2 is used for sensor interfacing (such as ESP01 wifi etc) via serial port.<p>
  Usages: <p>
 `uart_sendline(UART1, "sample string\n\r")`: print the string on `UART1` <p>
-### Header:`led_driver.h`
-Device driver to access EIGHT on board LEDs connected to Nexys-4 DDR FPGA board.<p>
+### Header:`gpio.h`
+Device driver to control GPIO of Nexys-4 DDR FPGA board.<p>
 Usages:<p>
-`led_write(0xFF)`-> display 0xFF in LED. <p>
+
 **...Adding other APIs soon, SDK is under development**
 
