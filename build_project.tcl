@@ -68,7 +68,7 @@ set rtl_files [list \
     $RTL_DIR/cpu.v \
     $RTL_DIR/progmem.v \
     $RTL_DIR/bootmem.v \
-    $RTL_DIR/led_gpio.v \
+    $RTL_DIR/gpio_controller.v \
     $RTL_DIR/UART_wrapper.v \
     $RTL_DIR/uart_rx_gpio.v \
     $RTL_DIR/uart_tx_gpio.v \
