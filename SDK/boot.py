@@ -9,9 +9,10 @@ def main():
 
     PORT = sys.argv[1]
     HEX_FILE = sys.argv[2]
-    BAUD = 9600
-    print("\nKRV32-UART Bootloader for uploading HEX file to PROGRAM Memory...\n")
-    print("\nCopyright: Dr. S.K.Maity, School of Electronics Engg, KIIT University\n")
+    BAUD = 115200
+    print("\n---------------------------------------------------------------------\n")
+    print("-----KRV32-UART Bootloader for uploading HEX file to PROGRAM Memory----\n")
+    print("Copyright: Dr. S.K.Maity, School of Electronics Engg, KIIT University--\n")
 
     try:
         ser = serial.Serial(PORT, BAUD, timeout=0.1)
