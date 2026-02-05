@@ -17,7 +17,7 @@ RESULT_DIR  = .
 
 DRV_OBJS = \
 	$(INC_DIR)/uart.o \
-	$(INC_DIR)/led_driver.o \
+	$(INC_DIR)/gpio.o \
 	$(INC_DIR)/delay.o
 
 # -------------------------------------------------
