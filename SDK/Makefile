@@ -18,6 +18,8 @@ RESULT_DIR  = .
 DRV_OBJS = \
 	$(INC_DIR)/uart.o \
 	$(INC_DIR)/gpio.o \
+	$(INC_DIR)/softi2c.o \
+	$(INC_DIR)/mpu6050.o \
 	$(INC_DIR)/delay.o
 
 # -------------------------------------------------
