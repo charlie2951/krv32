@@ -20,6 +20,7 @@ DRV_OBJS = \
 	$(INC_DIR)/gpio.o \
 	$(INC_DIR)/softi2c.o \
 	$(INC_DIR)/mpu6050.o \
+	$(INC_DIR)/ssd1306.o \
 	$(INC_DIR)/delay.o
 
 # -------------------------------------------------
