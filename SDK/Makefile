@@ -21,6 +21,8 @@ DRV_OBJS = \
 	$(INC_DIR)/softi2c.o \
 	$(INC_DIR)/mpu6050.o \
 	$(INC_DIR)/ssd1306.o \
+	$(INC_DIR)/tm1637.o \
+	$(INC_DIR)/my_string.o \
 	$(INC_DIR)/delay.o
 
 # -------------------------------------------------
