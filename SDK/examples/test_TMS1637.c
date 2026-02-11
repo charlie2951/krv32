@@ -25,13 +25,13 @@ SOFTWARE.
 #include "delay.h"
 
 int main(void) {
-    /* Define my pins here */
+    // Define my pins here 
     tm1637_config_t display = {
         .dio_pin = 2,
         .clk_pin = 3
     };
 
-    /* Initialize with the config */
+    // Initialize with the config 
     tm_init(&display);
 
     //test-1:display string
@@ -51,3 +51,4 @@ int main(void) {
     }
 
 }
+
