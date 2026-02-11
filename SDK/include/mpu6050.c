@@ -19,52 +19,34 @@ static void mpu6050_read(uint8_t reg, uint8_t *buf, uint8_t len)
 {
     if (len == 0) return;
 
-    /* Write register address */
+    // Write register address //
     softi2c_start();
     softi2c_write_byte(MPU6050_I2C_ADDR << 1);   // WRITE
     softi2c_write_byte(reg);
 
-    /* Repeated START for read */
+    // Repeated START for read //
     softi2c_start();
     softi2c_write_byte((MPU6050_I2C_ADDR << 1) | 1); // READ
 
-    /* Read bytes */
+    // Read bytes //
     for (uint8_t i = 0; i < len; i++)
         buf[i] = softi2c_read_byte(i < (len - 1)); // ACK all but last
 
     softi2c_stop();
 }
 
-/*
-uint8_t mpu6050_read_reg(uint8_t reg)
-{
-    uint8_t val;
-    mpu6050_read(reg, &val, 1);
-    return val;
-}
-*/
 
 uint8_t mpu6050_read_reg(uint8_t reg)
 {
     uint8_t val;
-/*
-    softi2c_start();
-    softi2c_write_byte(MPU6050_I2C_ADDR << 1);   // write
-    softi2c_write_byte(reg);
-
-    softi2c_start();
-    softi2c_write_byte((MPU6050_I2C_ADDR << 1) | 1); // read
-    val = softi2c_read_byte(0);  // NACK
-    softi2c_stop();
-*/
 
     val = softi2c_read_reg(MPU6050_I2C_ADDR, reg);
     return val;
 }
 
-/* -------------------------------------------------
- * Device control
- * ------------------------------------------------- */
+// -------------------------------------------------
+ // Device control
+ // ------------------------------------------------- 
 
 uint8_t mpu6050_who_am_i(void)
 {
@@ -73,10 +55,10 @@ uint8_t mpu6050_who_am_i(void)
 
 uint8_t mpu6050_init(void)
 {
-    /* Wake up device (clear sleep bit) */
+    // Wake up device (clear sleep bit) //
     mpu6050_write_reg(MPU6050_REG_PWR_MGMT_1, 0x00);
 
-    /* Small delay after wake-up (simple busy wait) */
+    // Small delay after wake-up (simple busy wait) //
     for (volatile int i = 0; i < 10000; i++);
 
     /* Sample rate = Gyro rate / (1 + SMPLRT_DIV)
@@ -192,3 +174,4 @@ int16_t mpu6050_read_temp(void)
     return ((int16_t)buf[0] << 8) | buf[1];
 }
     */
+
