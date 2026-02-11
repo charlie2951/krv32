@@ -352,14 +352,13 @@ Copy the content of the generated firmware.txt file (you may exclude zeros) into
 Go through the ***fpga*** directory to explore the compiled and implemented project in the Tang9K FPGA from GOWIN. Note that Tang9k uses an active low reset. Also LED port is 6 bits. So there are minor changes in reset logic (!rst instead of rst) and top module (top.v).
 
 ## Revision Note
-SoC Version-4 is more hardware efficient in terms of FPGA resources and more enriched with added peripherals. Previous versions (V1.0) consume 34% LUT, V2 takes only 14%. Program memory is isolated from the CPU core to bring more flexibility. GPIO logic is also isolated and implemented at top.v file (top module).
+SoC Version-4 is more hardware-efficient in terms of FPGA resources and more feature-rich with added peripherals. Previous versions (V1.0) consume 34% LUT, V2 takes only 14%. Program memory is isolated from the CPU core to bring more flexibility. GPIO logic is also isolated and implemented at `top.v` file (top module).
 
 ***Known issues/bugs*** <p>
 Date: 16/04/2025: Bug: Arithmetic right shift SRA, SRAI not working<p>
 Date: 5/6/2025: Bug fixed `SRA` and `SRAI` instructions. No known bug.
 Date: 2/2/2026: Bug fixed in ALU
 
-No. of Visitor: <p>
-
-![Visitor Count](https://profile-counter.glitch.me/charlie2951/count.svg)
+<p>
+![Visits](https://visitorbadge.vercel.app//api/badge/a7e9e315-5519-4190-acd4-5282917e79fb?style=for-the-badge&color=ffea00&labelColor=000000)
 
