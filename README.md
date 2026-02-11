@@ -1,3 +1,4 @@
+![Visits](https://visitorbadge.vercel.app//api/badge/a7e9e315-5519-4190-acd4-5282917e79fb?style=for-the-badge&color=ffea00&labelColor=000000)
 # A subset of RISC-V architecture (RV32I) SoC implementation for FPGA 
 A tiny version of `RISC-V` for low-resource FPGA developed by the **Integrated System Design lab, School of Electronics, KIIT University** <p>
 **Objective**
@@ -360,5 +361,5 @@ Date: 5/6/2025: Bug fixed `SRA` and `SRAI` instructions. No known bug.
 Date: 2/2/2026: Bug fixed in ALU
 
 <p>
-![Visits](https://visitorbadge.vercel.app//api/badge/a7e9e315-5519-4190-acd4-5282917e79fb?style=for-the-badge&color=ffea00&labelColor=000000)
+
 
