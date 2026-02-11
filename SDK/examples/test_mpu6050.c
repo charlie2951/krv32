@@ -29,7 +29,7 @@ SOFTWARE.
 #include "mpu6050.h"
 
 // GPIO->0 used for SDA and GPIO-1 for SCL, already defined in Soft_i2c header
-/* Simple integer print buffer */
+// Simple integer print buffer //
 static char buf[64];
 
 //ascii conversion
@@ -95,13 +95,13 @@ int main(void)
      static int16_t ax, ay, az;
      static int16_t gx, gy, gz;
 
-    /* Init peripherals */
+    // Init peripherals //
     uart_init(UART1);          // Debug UART
     softi2c_init();
 
     uart_sendline(UART1, "\r\nMPU6050 Test Start\r\n");
 
-    /* Init MPU6050 */
+    // Init MPU6050 //
     if (!mpu6050_init())
     {
         uart_sendline(UART1, "MPU6050 not detected!\r\n");
@@ -125,7 +125,7 @@ int main(void)
         // uart_sendline(UART1, ",: ");
         // print_data(axl);
        //  uart_sendline(UART1, "\r\n");
-        /* Read sensors */
+        // Read sensors //
         
          mpu6050_read_accel(&ax, &ay, &az);
          mpu6050_read_gyro(&gx, &gy, &gz);
@@ -141,7 +141,7 @@ int main(void)
        // uart_sendline(UART1, "\r\n");
         
 
-        /* Print gyro */
+        // Print gyro //
         
         uart_sendline(UART1, " GYRO X:");
         print_int(gx);
@@ -155,8 +155,9 @@ int main(void)
         print_int(temperature);
         uart_sendline(UART1," 'C");
         uart_sendline(UART1, "\r\n");
-        /* ~10 Hz update */
+      //wait for some time to fetch next data byte
         delay(2000000);
     }
 }
+
 
