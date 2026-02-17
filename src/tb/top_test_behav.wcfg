@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="top_test_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="top_test" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="2,004.726600 us"></ZoomStartTime>
+      <ZoomEndTime time="3,014.826601 us"></ZoomEndTime>
+      <Cursor1Time time="2,935.805000 us"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="234"></NameColumnWidth>
+      <ValueColumnWidth column_width="90"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="15" />
+   <wvobject fp_name="/top_test/rst" type="logic">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/boot_en" type="logic">
+      <obj_property name="ElementShortName">boot_en</obj_property>
+      <obj_property name="ObjectShortName">boot_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/gpio" type="array">
+      <obj_property name="ElementShortName">gpio[15:0]</obj_property>
+      <obj_property name="ObjectShortName">gpio[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/dut/timer0/addr" type="array">
+      <obj_property name="ElementShortName">addr[31:0]</obj_property>
+      <obj_property name="ObjectShortName">addr[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/dut/isTIMER" type="logic">
+      <obj_property name="ElementShortName">isTIMER</obj_property>
+      <obj_property name="ObjectShortName">isTIMER</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/dut/timer0/data_in" type="array">
+      <obj_property name="ElementShortName">data_in[31:0]</obj_property>
+      <obj_property name="ObjectShortName">data_in[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/dut/timer0/data_out" type="array">
+      <obj_property name="ElementShortName">data_out[31:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/dut/timer0/rd_strobe" type="logic">
+      <obj_property name="ElementShortName">rd_strobe</obj_property>
+      <obj_property name="ObjectShortName">rd_strobe</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/dut/timer0/wr_strobe" type="array">
+      <obj_property name="ElementShortName">wr_strobe[3:0]</obj_property>
+      <obj_property name="ObjectShortName">wr_strobe[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/dut/timer0/start_reg" type="logic">
+      <obj_property name="ElementShortName">start_reg</obj_property>
+      <obj_property name="ObjectShortName">start_reg</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/dut/timer0/timer_val_reg" type="array">
+      <obj_property name="ElementShortName">timer_val_reg[31:0]</obj_property>
+      <obj_property name="ObjectShortName">timer_val_reg[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/dut/timer0/u_timer/cycle_cnt" type="array">
+      <obj_property name="ElementShortName">cycle_cnt[31:0]</obj_property>
+      <obj_property name="ObjectShortName">cycle_cnt[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/dut/timer0/u_timer/done" type="logic">
+      <obj_property name="ElementShortName">done</obj_property>
+      <obj_property name="ObjectShortName">done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/top_test/dut/timer0/done_status" type="logic">
+      <obj_property name="ElementShortName">done_status</obj_property>
+      <obj_property name="ObjectShortName">done_status</obj_property>
+   </wvobject>
+</wave_config>
