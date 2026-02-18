@@ -1,8 +1,6 @@
-/* ----This version of CPU is under Beta testing phase and may 
-contain additional bug------
-Changelog:
-17/2/26: Extra pipeline register added in Execute stage to improve timing
-
+/* CPU Version
+-Beta testing phase
+-Several key modification takes place to meet timing criteria
 */
 module cpu(
     input rst, clk,
@@ -20,13 +18,29 @@ module cpu(
 
 // Intermediate registers
   reg [31:0] regfile[0:31];//Register file with X0 to X31;
-  reg [31:0] addr, data_rs1, data_rs2, next_pc; //address bus
+  reg [31:0] addr, data_rs1, data_rs2, alu_result, write_reg_data, next_pc; //address bus
   reg [31:0] data; //data bus
-  reg [31:0] write_reg_data;
-  reg [31:0] alu_result;//alu result reg
   // reg [31:0] load_data_tmp;
   reg [3:0] state; //state register
-  parameter RESET=0, WAIT=1, FETCH=2, DECODE=3, EXECUTE=4, BYTE=5, WAIT_LOADING=6, HLT=7, EXECUTE2=8; //Different states
+ //
+ reg branch_taken_reg;
+reg jal_reg, jalr_reg;
+
+reg [31:0] alu_result_reg;
+reg [31:0] pcplusimm_reg;
+reg [31:0] pcplus4_reg;
+// Value of Different states
+  localparam RESET=0, 
+            WAIT=1, 
+            FETCH=2, 
+            DECODE=3, 
+            EXECUTE=4, 
+            BYTE=5, 
+            WAIT_LOADING=6, 
+            HLT=7, 
+            EXECUTE2=8,
+            EXE3=9; //Different states
+ // reg TAKE_BRANCH;
   //********* Decoding of Instructions*******//
   wire [4:0] opcode = data[6:2];
   wire [4:0] rd = data[11:7];
@@ -72,6 +86,7 @@ module cpu(
   wire LESS_THAN_U = SUB[32];
   wire GREATER_THAN = !LESS_THAN;
   wire GREATER_THAN_U = !LESS_THAN_U;
+  
   wire TAKE_BRANCH = ((funct3==3'b000) & EQUAL)  |
        ((funct3==3'b111) & GREATER_THAN_U)       |
        ((funct3==3'b001) & NEQUAL)               |
@@ -79,6 +94,38 @@ module cpu(
        ((funct3==3'b101) & GREATER_THAN)         |
        ((funct3==3'b110) & LESS_THAN_U) ;
 
+/*
+//Replacing TAKE_BRANCH calculation by Behavioral style to improve timing criteria
+always @(*) begin
+case(funct3)
+3'b000: begin
+        if(EQUAL)
+        TAKE_BRANCH = 1;
+        end
+3'b001: begin
+        if(NEQUAL)
+        TAKE_BRANCH = 1;
+        end
+3'b111: begin
+        if(GREATER_THAN_U)
+        TAKE_BRANCH = 1;
+        end
+3'b100: begin
+        if(LESS_THAN)
+        TAKE_BRANCH = 1;
+        end
+3'b101: begin
+        if(GREATER_THAN)
+        TAKE_BRANCH = 1;
+        end
+3'b110: begin
+        if(LESS_THAN_U)
+        TAKE_BRANCH = 1;
+        end
+default: TAKE_BRANCH = 0;
+endcase
+end
+*/
   // Note : for ADD and SUB, funct3 is same but funct7[5] is different
 /*
   wire [31:0] alu_result = (funct3==3'b000) & isRtype & ~funct7[5]? ADD: //ADD
@@ -135,6 +182,7 @@ else
      endcase
 end
 //
+
   //source1 and source 2 data for ALU operation
   assign alu_in1 = data_rs1; //source is always rs1 for both type
   assign alu_in2 = (isRtype | isBtype)? data_rs2 : (isItype | isLtype |isJALR)? I_data:S_data;//ALU req for comparison in Btype
@@ -209,43 +257,75 @@ assign mem_wstrb = {4{(state==WAIT_LOADING) & isStype}} & STORE_wmask;
         else
           state <= WAIT;
       end
-      WAIT:
+WAIT:
       begin//this state provides 1 cycle delay to fetch data from progmem
+      
         state <= FETCH;
         //loc <= 0; //reset the loc to point 1st mem location
       end
 
-      FETCH: //Fetch data from progmem RAM
+FETCH: //Fetch data from progmem RAM
       begin
         data <= mem_rdata; //latch mem read data into reg
         state <= DECODE;
       end
 
-      DECODE: //Decoding of different instruction and generate signal
+DECODE: //Decoding of different instruction and generate signal
       begin
         data_rs1 <= regfile[data[19:15]];
         data_rs2 <= regfile[data[24:20]];
         state <= ~isSystype? EXECUTE:  HLT;
       end
-
-      EXECUTE: //1st Execute stage
+/*
+      EXECUTE:
       begin
+        //addr <= (isBtype & TAKE_BRANCH)| isJAL ? pcplusimm : isJALR? alu_result: pcplus4;
         next_pc <= (isBtype & TAKE_BRANCH)| isJAL ? pcplusimm : isJALR? alu_result: pcplus4;
-       // state <= !(isStype|isLtype|isJAL|isJALR) ? WAIT: BYTE;
-       state <= EXECUTE2;
+        //state <= !(isStype|isLtype|isJAL|isJALR) ? WAIT: BYTE;
+        state <= EXECUTE2;
+      end
+*/
+EXECUTE:
+begin
+    // Register heavy combinational outputs
+    alu_result_reg   <= alu_result;
+    branch_taken_reg <= (isBtype & TAKE_BRANCH);
+    jal_reg          <= isJAL;
+    jalr_reg         <= isJALR;
+
+    pcplusimm_reg    <= pcplusimm;
+    pcplus4_reg      <= pcplus4;
+
+    state <= EXECUTE2;
+end
+/*
+EXECUTE2: begin
+        addr <= next_pc;
+        state <= !(isStype|isLtype|isJAL|isJALR) ? WAIT: BYTE;
     end
+ */
+EXECUTE2:
+begin
+    // Small mux only (fast)
+    next_pc <= branch_taken_reg | jal_reg ? pcplusimm_reg :
+               jalr_reg ? alu_result_reg :
+               pcplus4_reg;
+
     
-    EXECUTE2: //2nd execute stage
-    begin
-                addr <= next_pc;
-                state <= !(isStype|isLtype|isJAL|isJALR) ? WAIT: BYTE;
-            end
-      BYTE://state value is 5
+    state <= EXE3;
+end
+
+EXE3: begin
+state <= !(isStype|isLtype|isJAL|isJALR) ? WAIT : BYTE;
+addr <= next_pc;   // PC updated here
+end
+   
+BYTE://state value is 5
       begin
         //give one intermediate clock delay
         state <= WAIT_LOADING;
       end
-      WAIT_LOADING:
+WAIT_LOADING:
         state <= WAIT;
 
     endcase
@@ -266,16 +346,14 @@ assign mem_wstrb = {4{(state==WAIT_LOADING) & isStype}} & STORE_wmask;
 
   // ** Register file write back data **//
   wire write_reg_en = ((isItype|isRtype|isJAL|isJALR|isLUI|isAUIPC) &(state==EXECUTE2))|(isLtype & (state==WAIT_LOADING));
-
- //Replaced by always @(*) to meet timing
- /*
+  /*
   wire [31:0] write_reg_data = (isItype |isRtype) ? alu_result:
        isLtype ? load_data_tmp:
        (isJAL|isJALR)? pcplus4:
        isLUI? U_data:
        isAUIPC?pcplusimm:0;
-
 */
+//Using Behavioral style to meet timing in datapath
 always @(*) begin
     if(isItype | isRtype)
         write_reg_data = alu_result;
@@ -289,6 +367,7 @@ always @(*) begin
         write_reg_data = pcplusimm;
    
 end
+
 
   always @(posedge clk)
   begin
