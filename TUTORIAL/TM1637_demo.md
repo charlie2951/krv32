@@ -41,5 +41,5 @@ int main(void) {
 ```
 **API used:** <p>
 `tm_display_string()`: display string <p>
-`tm_display_scroll` : enable scrolling display <p>
-`tm_display_clock` : Display number in clock format.
+`tm_display_scroll()` : enable scrolling display <p>
+`tm_display_clock()` : Display number in clock format.
