@@ -1,1 +1,1 @@
-# Tutorial
+ **This directory contain Tutorial i.e. how to use the API to program the KRV-32 board and pin connections of sensors. Refer to the individual tutorial files available inside this directory.**
