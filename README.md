@@ -249,6 +249,7 @@ For debugging and behavioral simulation, use any Verilog compiler. I have used o
 | UART_RX    |  C4                  |
 | BOOT_Enable| J15 (High=BOOT mode, Low=Execution mode)|
 |AES Crypto IP| Internally accessable via memory mapped registers|
+| Hardware Timer|Internally accessable|
 
 
 <p>
@@ -312,29 +313,7 @@ make linux
 ```
 The multilib compiler will have the prefix `riscv64-unknown-elf-` or `riscv64-unknown-linux-gnu-` but will be able to target both 32-bit and 64-bit systems at a cost of installation size and build time. It will support the most common `-march/-mabi` options, which can be seen by using the `--print-multi-lib` flag on either cross-compiler.<p>
 
-## Test a Sample counter program (see SDK for updated GPIO access API using C program) 
-Open a test editor and add the following piece of code. Save the code as *main.c*<p>
-Blinking on-board LEDs
-```c
-// C code to blink LED with gpio
-//Customize the code as per your requirement
-
-#include <krv32.h>
-
-
-int main()
-{
-   volatile uint32_t count = 0;
-	      
-    while (1)
-    {
-	
-        digitalwrite(count); //send data to LED gpio
-        delay(1000000);//user defined delay approx 1sec
-        count = count + 1; //update count by 1
-    }
-}
-```
+## Refer to `Tutorial` directory for examples 
 
 ## Compiling the source code
 A dedicated makefile is provided (inside testcase located at (testcase/RISCV_GCC_testcases/counter/Makefile) to automate the task. Execute the following commands serially to generate the hex code with an 8-bit chunk. Note: if you are using 32-bit toolchain without multilib support then replace the *riscv64*  keyword by using *riscv32* and also check the GCC toolchain path mentioned in the Makefile. In my case, it is *RISCV_TOOLCHAIN_DIR = /home/kiit/riscv/bin*. Change it as per your installation.
@@ -343,10 +322,10 @@ A dedicated makefile is provided (inside testcase located at (testcase/RISCV_GCC
 make clean
 make
 ```
-Copy the content of the generated firmware.txt file (you may exclude zeros) into your FPGA's firmware.mem and run the FPGA design flow or simulate it for debugging. You may open the *dumpfile* in text editor to see the generated assembly code from C code. This is useful for debugging. <p>
+After compilation, upload the `firmware.hex` using python based uploader `boot.py`or simulate it (copy content of firmware.hex into vivado's firmware.mem file) for debugging. You may open the *dumpfile* in text editor to see the generated assembly code from C code. This is useful for debugging. <p>
 
 ***Points to Remember*** <p>
-1. `Program memory size:` The default size is 2KB. See the generated `firmware.hex` file. If it crosses 512 lines (= 512 x 4), excluding the last rows of ZEROS, the code will not fit into 2KB memory space. Additionally you need to allocate some space for stack pointer which is generally pointing to last memory location as per start-up script in assembler. In that case, You have to increase memory size. For that, open Verilog file `progmem.v` and change the line `parameter MEM_SIZE=1024` to the required value. Also, edit the *Makefile* and change the variable *MEM_SIZE = 1024* to the required value. Then open the loader script *sections.lds* and change the LENGTH variable `mem : ORIGIN = 0x00000000, LENGTH = 1K` to the required value. Also open `start.s` file and change the MEM_SIZE line `.equ MEM_SIZE, 0x400 ' to `0x800` i.e 2kb <p>
+1. `Program memory size:` The default size is 4KB. See the generated `firmware.hex` file. If you are doing any complecated operation which demand more size, then you will get a linker error during the compilation and linking stage. In that case, You have to increase memory size. For that, open Verilog file `progmem.v` and change the line `parameter MEM_SIZE=4096` to the required value. Also, edit the *Makefile* and change the variable *MEM_SIZE = 4096* to the required value. Then open the loader script *sections.lds* and change the LENGTH variable `mem : ORIGIN = 0x00000000, LENGTH = 4K` to the required value. Also open `start.s` file and change the MEM_SIZE line `.equ MEM_SIZE, 0x1000 ' to `desired value`  <p>
 2. `Whether Verilog core support toolchain generated opcode?` :  See the `dumpfile` after C compilation and check the registers and instructions used. This version of CPU supports almost all commonly used instructions unless mentioned at the top of cpu.v <p>
 3. Traps or any other interrupts are not supported. CSR instructions are not supported in the current version. <p>
 ***N.B.*** This is the working version of soft SoC and may contain additional bugs. <p>
