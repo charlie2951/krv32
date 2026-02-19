@@ -1,1 +1,1 @@
- **This directory contain Tutorial i.e. how to use the API to program the KRV-32 board and pin connections of sensors. Refer to the individual tutorial files available inside this directory.**
+ **This directory contain Tutorial i.e. how to use the API to program the KRV-32 SOC ported into Nexys-4 DDR board and pin connections of sensors. Refer to the individual tutorial files available inside this directory.**
