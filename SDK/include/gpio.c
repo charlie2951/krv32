@@ -22,6 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
+/*
+   Description: GPIO access driver
+                total 16 GPIO (0 to 7 via PMOD JB and 8-15 mapped to LEDs)
+   Author: Subir Maity
+   Version: 1.0
+*/
 #include <stdint.h>
 #include "gpio.h"
 
@@ -65,5 +71,6 @@ void digitalWritePort(uint8_t base_pin, uint8_t value)
     *GPIO_DATA &= ~mask;                     // clear port
     *GPIO_DATA |= ((uint32_t)value << base_pin);
 }
+
 
 
