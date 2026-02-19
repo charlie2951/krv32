@@ -8,7 +8,7 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 2. Compatible with GNU toolchain
 3. Soft-IP, configurable as per your FPGA
 4. On-board LEDS can be interfaced using C SDK
-5. Fully functional UART Transmitter and Receiver (currently support 9600 baud rate only)
+5. Fully functional UART Transmitter and Receiver (currently support 115200 baud rate only)
 6. BRAM based BOOTLOADER support (need not to generate bitstream everytime while changing application code)
 7. Crypto core based on 32 bit AES, both encryption and decryption
 8. Four-channel PWM output with a frequency of 500HZ and duty cycle 0-100% (testing going on, not included at this stage)
