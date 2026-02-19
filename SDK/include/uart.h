@@ -30,5 +30,5 @@ void uart_send(UART_TypeDef *UARTx, uint8_t my_char);
 uint8_t uart_receive(UART_TypeDef *UARTx);
 void uart_sendline(UART_TypeDef *UARTx, const uint8_t *my_str);
 void uart_init(UART_TypeDef *UARTx);
-
+void uart_sendnumber(UART_TypeDef *UARTx,uint32_t val);
 #endif
