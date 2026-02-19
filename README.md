@@ -13,6 +13,7 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 7. Crypto core based on 32 bit AES, both encryption and decryption
 8. Four-channel PWM output with a frequency of 500HZ and duty cycle 0-100% (testing going on, not included at this stage)
 9. Tested in Artix-7 series FPGA embedded in Nexys-4 DDR board
+10. Timing violations are fixed at 100MHz.
    <p></p>
 
 ## Directory Description
@@ -37,6 +38,7 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
    <img width="764" height="367" alt="image" src="https://github.com/user-attachments/assets/d031add0-1a5e-40be-a11d-b3b5ad2fb8f8" />
 5. Browse and select the MCS file which should be inside `impl_1` folder of project dir. Program the flash.
    <img width="324" height="440" alt="image" src="https://github.com/user-attachments/assets/c6484a6b-ecd4-4cea-ad51-a3d68b55cc4e" />
+6. **You can also prebuild `MCS` file available in repo and directly load it in flash using `Hardware manager` of `Vivado`**
 
 
 
