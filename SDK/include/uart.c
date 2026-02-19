@@ -1,6 +1,7 @@
 #include "uart.h"
 #include "delay.h"
 
+
 //Initialize UART
 void uart_init(UART_TypeDef *UARTx)
 {
@@ -38,4 +39,21 @@ void uart_sendline(UART_TypeDef *UARTx, const uint8_t *my_str) {
     for (int i = 0; my_str[i] != '\0'; i++) {
         uart_send(UARTx, my_str[i]);
     }
+}
+
+//helper func replacement of snprintf()
+
+ void uart_sendnumber(UART_TypeDef *UARTx,uint32_t val)
+{
+    static char tmp[12];
+    int i = 0;
+
+    
+    do {
+        tmp[i++] = '0' + (val % 10);
+        val /= 10;
+    } while (val);
+
+    while (i--)
+        uart_send(UARTx, tmp[i]);
 }
