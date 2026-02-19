@@ -20,6 +20,8 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 `src`: contains all source code i.e. RTL code and constraints and tcl file for creating vivado projects.<p>
 `bootloader`: Contain python script to upload HEX file into FPGA BRAM i.e. program memory via UART.<p>
 `SDK`: Contains the C headers and application code to be compiled using RISC-V GNU toolchain<p>
+`TUTORIAL` : Contains sample demo programs <p>
+`mcs_file_nexys4ddr`: Pre-build MCS file for Nexys4-DDR board <p>
 
 ## Steps to build the Vivado project (Tested on Vivado 2024.2)
 1. Clone the repo.
