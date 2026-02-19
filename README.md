@@ -331,7 +331,7 @@ After compilation, upload the `firmware.hex` using python based uploader `boot.p
 ***N.B.*** This is the working version of soft SoC and may contain additional bugs. <p>
 
 ## FPGA Implementation Examples
-Go through the ***fpga*** directory to explore the compiled and implemented project in the Tang9K FPGA from GOWIN. Note that Tang9k uses an active low reset. Also LED port is 6 bits. So there are minor changes in reset logic (!rst instead of rst) and top module (top.v).
+Tested and verified in `Artix-7` series FPGA-based `Nexys-4 DDR` board.
 
 ## Revision Note
 SoC Version-4 is more hardware-efficient in terms of FPGA resources and more feature-rich with added peripherals. Previous versions (V1.0) consume 34% LUT, V2 takes only 14%. Program memory is isolated from the CPU core to bring more flexibility. GPIO logic is also isolated and implemented at `top.v` file (top module).
