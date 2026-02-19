@@ -6,33 +6,35 @@ module top(
     input uart1_rx,
     output uart1_tx,
     inout [15:0] gpio
-  );
-  wire [31:0] mem_rdata, mem_wdata, addr;
+    );
+
+  wire [31:0] mem_rdata, mem_wdata, addr, timer_rdata;
   wire rstrb;
   wire [3:0] wr_strobe;
   wire [31:0] led_rdata,uart0_data, uart1_data,crypto_data;
   wire [31:0] boot_rdata, gpio_rdata;
 //select device
-  wire isMEM = (addr[31:16]==16'h0000);
-  wire isGPIO = (addr[31:16]==16'h1000);
-  wire isBOOT =(addr[31:16]==16'hA000);
+  wire isMEM = (addr[31:16]==16'h0000); //program memory
+  wire isGPIO = (addr[31:16]==16'h1000); //GPIO
+  wire isTIMER = (addr[31:16]==16'hB000); //timer
+  wire isBOOT =(addr[31:16]==16'hA000); //Bootloader
  //UART0 and UART-1 data read back by cpu
-  wire isUART0 = (addr[31:16]==16'h2000);
-  wire isUART1 = (addr[31:16]==16'h3000);
+  wire isUART0 = (addr[31:16]==16'h2000); //UART0
+  wire isUART1 = (addr[31:16]==16'h3000); //UART1
   //Crypto data out read back by cpu
-  wire isenc_valid_out= (addr[31:24]==8'h05);
-  wire isenc_data_out= (addr[31:24]==8'h06);
-  wire isdec_valid_out= (addr[31:24]==8'h0b);
-  wire isdec_data_out= (addr[31:24]==8'h0c);
+  wire isenc_valid_out= (addr[31:24]==8'h05); //crypto
+  wire isenc_data_out= (addr[31:24]==8'h06); //crypto
+  wire isdec_valid_out= (addr[31:24]==8'h0b); //crypto
+  wire isdec_data_out= (addr[31:24]==8'h0c); //crypto
   wire iscrypto = isenc_valid_out|isenc_data_out|isdec_valid_out|isdec_data_out;
 
 //Selecting input data to CPU from memory or peripheral devices based on address
  wire [31:0] cpu_rdata = isMEM ? mem_rdata:
                          isBOOT ? boot_rdata:
-                        //isLED ? led_rdata:
-			isGPIO ? gpio_rdata:
+                         isGPIO ? gpio_rdata:
                         isUART0 ? uart0_data:
                         isUART1 ? uart1_data:
+			                  isTIMER ? timer_rdata:
                         iscrypto?crypto_data:32'h0;
 
 
@@ -59,17 +61,6 @@ module top(
             .data_out(mem_rdata)
           );
 
-/*
-// Mapping LED GPIO
-led_gpio led0(.rst(!rst), .clk(clk),
-                .addr(addr),
-                .data_in(mem_wdata),
-                .rd_strobe(rstrb & isLED),
-                .wr_strobe(wr_strobe & {4{isLED}}),
-                .data_out(led_rdata),
-                .leds(leds)
-                );
-*/
 //mapping uart0 wrapper gpio regs
 uart0_wrapper uart0_mem_map(.rst(!rst), .clk(clk),
                 .addr(addr),
@@ -125,4 +116,14 @@ gpio_controller gpio_0(
 .gpio_pins(gpio) //16 gpio
 );
 
+//timer0
+timer_mmio timer0(
+.rst_n(rst), .clk(clk),
+.addr(addr),
+.data_in(mem_wdata),
+.data_out(timer_rdata),
+.rd_strobe(rstrb),
+.wr_strobe(wr_strobe)
+
+);
 endmodule
