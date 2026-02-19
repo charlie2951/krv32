@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+//MPU6050 driver using software I2C library
 #include "mpu6050.h"
 #include "softi2c.h"
 
@@ -197,5 +198,6 @@ int16_t mpu6050_read_temp(void)
     return ((int16_t)buf[0] << 8) | buf[1];
 }
     */
+
 
 
