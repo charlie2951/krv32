@@ -7,12 +7,12 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 1. Supports RISC-V RV-32I extension
 2. Compatible with GNU toolchain
 3. Soft-IP, configurable as per your FPGA
-4. On-board LEDS can be interfaced using C SDK
-5. Fully functional UART Transmitter and Receiver (currently support 115200 baud rate only)
-6. BRAM based BOOTLOADER support (need not to generate bitstream everytime while changing application code)
+4. On-board LEDS can be interfaced using the C SDK
+5. Fully functional UART Transmitter and Receiver (currently supports 115200 baud rate only)
+6. BRAM-based BOOTLOADER support (does not need to generate bitstream every time while changing application code)
 7. Crypto core based on 32 bit AES, both encryption and decryption
-8. Four-channel PWM output with a frequency of 500HZ and duty cycle 0-100% (testing going on, not included at this stage)
-9. Tested in Artix-7 series FPGA embedded in Nexys-4 DDR board
+8. Hardware timer and free-running counter for generating an accurate delay
+9. Tested in Artix-7 series FPGA embedded in Digilent Nexys-4 DDR board
 10. Timing violations are fixed at 100MHz.
    <p></p>
 
@@ -23,6 +23,26 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 `TUTORIAL` : Contains sample demo programs <p>
 `mcs_file_nexys4ddr`: Pre-build MCS file for Nexys4-DDR board <p>
 
+## GPIO mapping along with FPGA pin details
+
+| Peripheral | Nexys4- DDR FPGA used Pins      |
+|------------|:------------------------------------:|
+| LED (GPIO[8-15]       |  U16, U17, V17, R18, N14, J13, K15, H17  |
+| UART1_TX    |  D4                  |
+| UART1_RX    |  C4                  |
+|UART2_TX|JA[pin 1]|
+|UART2_RX|JA[pin 2]|
+|GPIO[0-7]|JB header, pin-1,2,3,4,7,8,9,10|
+|Soft I2C SDA|JB pin-1|
+|soft I2C SCL| JB pin-2|
+| BOOT_Enable| J15 (High=BOOT mode, Low=Execution mode)|
+|AES Crypto IP| Internally accessable via memory mapped registers|
+| Hardware Timer|Internally accessable|
+|CPU Reset| C12|
+
+<p>
+For Nexys-4 DDR board which uses Artix-7 series FPGA, LEDS are active high and total 8 LEDs are connected. Refer to the table mentioned above. <p>
+	
 ## Steps to build the Vivado project (Tested on Vivado 2024.2)
 1. Clone the repo.
 2. For windows user, open Vivado TCL prompt and navigate to the cloned directory inside which the `build_project.tcl` file is present. For example, use the following as a reference. Type the following to change the directory to cloned repo (check path on your pc. Also, in TCL script, the slashes are opposite to the Windows system) `C:\Users\subir\Downloads\krv32-4.0\krv32-4.0`. For Linux user, you can open the shell inside the cloned repo directory.
@@ -240,22 +260,6 @@ Refer to the RiSC-V official page and/or other tutorials. Some useful links are 
 **Debugging and Simulation** <p>
 For debugging and behavioral simulation, use any Verilog compiler. I have used open-source Icarus Verilog with GTKWave waveform viewer. A sample testbench is added for debugging and test purposes. Modify the testbench as per your requirements.<p>
 *Program Memory space*: Default is 1Kbyte. Each location will contain 32-bit data. However, you can change it in code (progmem.v). Verilog Implementation: *reg[31:0] PROGMEM[0:1023]* <p>
-
-
-## GPIO mapping along with FPGA pin details
-
-| Peripheral | Nexys4- DDR FPGA used Pins      |
-|------------|:------------------------------------:|
-| LED        |  U16, U17, V17, R18, N14, J13, K15, H17  |
-| UART_TX    |  D4                  |
-| UART_RX    |  C4                  |
-| BOOT_Enable| J15 (High=BOOT mode, Low=Execution mode)|
-|AES Crypto IP| Internally accessable via memory mapped registers|
-| Hardware Timer|Internally accessable|
-
-
-<p>
-For Nexys-4 DDR board which uses Artix-7 series FPGA, LEDS are active high and total 8 LEDs are connected. Refer to the table mentioned above. <p>
 	
 **Flowchart** <p>
 The CPU is implemented in a straightforward way by keeping the code simple and understandable. Further optimization may be done to save hardware resources and speed. In this implementation, a multi-clock cycle is required to execute a single instruction. Currently, the R-type (ADD, SUB, AND, OR etc) and Immediate instructions (I-type) instructions (ADDI, ANDI, ORI, etc) consume 5 clock cycles, Load and store type instructions take 9 cycles, Branch and Jump instructions take 3 cycles, and others (LUI, AUIPC) take 4 cycles. Pipelining may be implemented in the future to speed up the execution. <p>
