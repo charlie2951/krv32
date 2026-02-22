@@ -85,6 +85,11 @@ set rtl_files [list \
     $RTL_DIR/timer_gpio.v \
     $RTL_DIR/timer1_gpio.v \
     $RTL_DIR/timer_counter.v \
+    $RTL_DIR/i2c_wrapper.v \
+    $RTL_DIR/i2c1_wrapper.v \
+   $RTL_DIR/i2c_master.sv \
+   $RTL_DIR/clock_counter.sv \
+
 
 ]
 
@@ -99,6 +104,11 @@ if {[llength $rtl_files] == 0} {
 }
 
 add_files $rtl_files
+# Adding system verilog source file
+set_property file_type SystemVerilog [get_files $RTL_DIR/i2c_master.sv]
+set_property file_type SystemVerilog [get_files $RTL_DIR/clock_counter.sv]
+update_compile_order -fileset sources_1
+
 
 # Define the path to your constraint file
 set SDC_FILE_PATH "./src/top.xdc"
@@ -175,5 +185,4 @@ puts "MCS file generation complete: $mcs_file"
 puts "MCS file should be located in the impl_1 run directory."
 
 close_project
-
 
