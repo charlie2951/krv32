@@ -14,6 +14,8 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 8. Hardware timer and free-running counter for generating an accurate delay
 9. Tested in Artix-7 series FPGA embedded in Digilent Nexys-4 DDR board
 10. Timing violations are fixed at 100MHz.
+11. SDK with customized `Makefile` and a variety of drivers for sensor interfacing
+12. Several example demo has been provided
    <p></p>
 
 ## Directory Description
