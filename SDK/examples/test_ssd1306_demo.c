@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 // Sample demo programme to interface SSD1306 OLED
-#include "i2c.h"
+
 #include "ssd1306.h"
 
 #define I2C I2C0 //using I2C-0
