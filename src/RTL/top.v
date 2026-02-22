@@ -1,22 +1,33 @@
 module top(
-    input rst, clk,
-    input boot_en,
-    input uart0_rx,
-    output uart0_tx,
-    input uart1_rx,
-    output uart1_tx,
-    inout [15:0] gpio
+    input rst, clk, //control signals
+    input boot_en, //boot enable pin
+    input uart0_rx, //uart0-rx
+    output uart0_tx, //uart0-tx
+    input uart1_rx,//uart1-rx
+    output uart1_tx, //uart1-tx
+    inout [15:0] gpio, //16 bit gpio
+    inout i2c0_sda,//pins for i2c0(SDA)
+    inout i2c0_scl,//pins for i2c0(SCL)
+    inout i2c1_sda,//pins for i2c1(SDA)
+    inout i2c1_scl //pins for i21(SCL)
     );
 
-  wire [31:0] mem_rdata, mem_wdata, addr, timer_rdata;
+    //Bus interfac e control lines
+  wire [31:0] mem_rdata, mem_wdata, addr;
   wire rstrb;
   wire [3:0] wr_strobe;
-  wire [31:0] led_rdata,uart0_data, uart1_data,crypto_data;
+  //peripheral data collect wires
+  wire [31:0] timer0_rdata, timer1_rdata;
+  wire [31:0] i2c0_rdata, i2c1_rdata;
+  wire [31:0] uart0_data, uart1_data,crypto_data;
   wire [31:0] boot_rdata, gpio_rdata;
-//select device
+//************select peripheral device ****   //
   wire isMEM = (addr[31:16]==16'h0000); //program memory
   wire isGPIO = (addr[31:16]==16'h1000); //GPIO
-  wire isTIMER = (addr[31:16]==16'hB000); //timer
+  wire isTIMER0 = (addr[31:4]==28'hB000000); //timer0
+  wire isTIMER1 = (addr[31:4]==28'hB000001); //timer1
+  wire isI2C0 = (addr[31:8]==24'hC00000); //i2c master0
+  wire isI2C1 = (addr[31:8]==24'hC00001); //i2c master1
   wire isBOOT =(addr[31:16]==16'hA000); //Bootloader
  //UART0 and UART-1 data read back by cpu
   wire isUART0 = (addr[31:16]==16'h2000); //UART0
@@ -34,7 +45,10 @@ module top(
                          isGPIO ? gpio_rdata:
                         isUART0 ? uart0_data:
                         isUART1 ? uart1_data:
-			                  isTIMER ? timer_rdata:
+			                  isTIMER0 ? timer0_rdata:
+                        isTIMER1 ? timer1_rdata:
+			                  isI2C0 ? i2c0_rdata:
+                        isI2C1 ? i2c1_rdata:
                         iscrypto?crypto_data:32'h0;
 
 
@@ -117,13 +131,51 @@ gpio_controller gpio_0(
 );
 
 //timer0
-timer_mmio timer0(
+timer0_mmio timer0(
 .rst_n(rst), .clk(clk),
 .addr(addr),
 .data_in(mem_wdata),
-.data_out(timer_rdata),
+.data_out(timer0_rdata),
 .rd_strobe(rstrb),
 .wr_strobe(wr_strobe)
 
+);
+
+//Timer1 mapping
+//timer1
+timer1_mmio timer1(
+.rst_n(rst), .clk(clk),
+.addr(addr),
+.data_in(mem_wdata),
+.data_out(timer1_rdata),
+.rd_strobe(rstrb),
+.wr_strobe(wr_strobe)
+
+);
+
+//I2C master-0 mmio wrapper
+i2c_master0_mmio i2c0(
+.clk(clk),
+.rst_n(rst),
+.addr(addr),
+.din(mem_wdata),
+.dout(i2c0_rdata),
+.rd_strb(rstrb),
+.wr_strb(wr_strobe),
+.i2c_sda(i2c0_sda),
+.i2c_scl(i2c0_scl)
+);
+
+//I2C master-1 mmio wrapper
+i2c_master1_mmio i2c1(
+.clk(clk),
+.rst_n(rst),
+.addr(addr),
+.din(mem_wdata),
+.dout(i2c1_rdata),
+.rd_strb(rstrb),
+.wr_strb(wr_strobe),
+.i2c_sda(i2c1_sda),
+.i2c_scl(i2c1_scl)
 );
 endmodule

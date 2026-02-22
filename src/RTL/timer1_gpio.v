@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module timer0_mmio (
+module timer1_mmio (
     input  wire        clk,
     input  wire        rst_n,
 
@@ -17,7 +17,7 @@ module timer0_mmio (
 // ======================================================
 // Base Address
 // ======================================================
-//localparam BASE_ADDR = 32'hB000_0000;
+//localparam BASE_ADDR = 32'hB000_0010;
 
 // Offsets
 localparam REG_CTRL      = 4'h0;
@@ -37,7 +37,7 @@ reg        done_status;
 // Address decode
 // ======================================================
 //wire [31:0] offset = addr - BASE_ADDR;
-wire isTimer0 = (addr[31:4]==28'hB000000);
+wire isTimer1 = (addr[31:4]==28'hB000001);
 wire [3:0] offset = addr[3:0];
 wire        write_en = |wr_strobe;
 
@@ -74,7 +74,7 @@ always @(posedge clk or negedge rst_n) begin
 
         // Register writes
        // if(write_en && (addr >= BASE_ADDR)) begin
-            if(write_en && isTimer0) begin
+            if(write_en && isTimer1) begin
             case(offset)
 
                 REG_CTRL: begin
@@ -111,7 +111,7 @@ end
 // Read Logic
 // ======================================================
 always @(posedge clk) begin
-    if(rd_strobe && isTimer0) begin
+    if(rd_strobe && isTimer1) begin
         case(offset)
           /*
             REG_CTRL:
