@@ -3,7 +3,7 @@
 #include "gpio.h"
 #include "delay.h"
 #include "uart.h"
-#define TIMER TIMER1 //using timer1 for delay
+#define TIMER TIMER1 //using timer1 for count
 //main func
 int main(void)
 {
