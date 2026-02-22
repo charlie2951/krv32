@@ -21,4 +21,5 @@ void timer_start(Timer_TypeDef *timer);
 uint32_t timer_status(Timer_TypeDef *timer);
 void timer_delay_us(Timer_TypeDef *timer, uint32_t val);
 void timer_delay_ms(Timer_TypeDef *timer, uint32_t val);
+void timer_getcount(Timer_TypeDef *timer,uint32_t *count);
 #endif
