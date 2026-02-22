@@ -7,7 +7,7 @@ file to access the timer and other API
 #include "timer.h"
 #include "gpio.h"
 #include "uart.h"
-
+#define TIMER TIMER1 //using timer-1
 int main(void)
 { 
   
@@ -18,10 +18,10 @@ int main(void)
     {
          digitalWrite(9,1); //write 1 to gpio pin
          uart_sendline(UART1,"writing high \r\n"); //print on UART
-         timer_delay_ms(1000); //timer based delay of 1sec
+         timer_delay_ms(TIMER,1000); //timer based delay of 1sec
         digitalWrite(9,0); //writing 0
         uart_sendline(UART1,"writing low \r\n");
-        timer_delay_ms(2000); //timer based delay of 2sec
+        timer_delay_ms(TIMER,2000); //timer based delay of 2sec
     }
 
     return 0;
