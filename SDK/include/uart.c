@@ -43,11 +43,15 @@ void uart_sendline(UART_TypeDef *UARTx, const uint8_t *my_str) {
 
 //helper func replacement of snprintf()
 
- void uart_sendnumber(UART_TypeDef *UARTx,uint32_t val)
+ void uart_sendnumber(UART_TypeDef *UARTx, int32_t val)
 {
     static char tmp[12];
     int i = 0;
-
+   if (val < 0)
+    {
+        uart_send(UART1, '-');
+        val = -val;
+    }
     
     do {
         tmp[i++] = '0' + (val % 10);
@@ -57,3 +61,4 @@ void uart_sendline(UART_TypeDef *UARTx, const uint8_t *my_str) {
     while (i--)
         uart_send(UARTx, tmp[i]);
 }
+
