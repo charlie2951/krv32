@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include "delay.h"
 #include "dht11.h"
-#include "i2c_master.h"
-#include "ssd.h"
+#include "i2c.h"
+#include "ssd1306.h"
 #include "my_string.h"
 #define I2C I2C0
 int main(void){
@@ -52,5 +52,6 @@ int main(void){
     delay(10000000);
 }
 }
+
 
 
