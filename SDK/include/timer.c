@@ -1,4 +1,4 @@
-#include "timer_revised.h"
+#include "timer.h"
 
 void timer_set_value(Timer_TypeDef *timer, uint32_t value) {
     timer->TIMER_VAL = value;
