@@ -5,6 +5,7 @@
 #include "gpio.h"
 #include "timer.h"
 
+#define TIMER TIMER0
 /* -------------------------------------------------
  * Error codes (not implemented till now)
  * ------------------------------------------------- */
