@@ -2,48 +2,47 @@
 #define MPU6050_H
 
 #include <stdint.h>
+#include "i2c.h"
 
-/* -------------------------------------------------
- * I2C address
- * ------------------------------------------------- */
-/* AD0 = 0 → 0x68, AD0 = 1 → 0x69 */
-#define MPU6050_I2C_ADDR      0x68
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/* -------------------------------------------------
- * MPU6050 Register Map (partial)
- * ------------------------------------------------- */
-#define MPU6050_REG_SMPLRT_DIV    0x19
-#define MPU6050_REG_CONFIG        0x1A
-#define MPU6050_REG_GYRO_CONFIG   0x1B
-#define MPU6050_REG_ACCEL_CONFIG  0x1C
-#define MPU6050_REG_ACCEL_XOUT_H  0x3B
-#define MPU6050_REG_TEMP_OUT_H    0x41
-#define MPU6050_REG_GYRO_XOUT_H   0x43
-#define MPU6050_REG_PWR_MGMT_1    0x6B
-#define MPU6050_REG_WHO_AM_I      0x75
+// ========================================================
+// MPU6050 I2C Address
+// ========================================================
+#define MPU6050_ADDR        0x68
 
-/* -------------------------------------------------
- * Public API
- * ------------------------------------------------- */
+// ========================================================
+// Register Map
+// ========================================================
+#define MPU_PWR_MGMT_1      0x6B
+#define MPU_WHO_AM_I        0x75
 
-/* Basic control */
-uint8_t mpu6050_init(void);
-uint8_t mpu6050_who_am_i(void);
+#define MPU_ACCEL_XOUT_H    0x3B
+#define MPU_GYRO_XOUT_H     0x43
+#define MPU_TEMP_OUT_H      0x41
 
-/* Raw sensor reads */
-void mpu6050_read_accel( int16_t *ax,
-                         int16_t *ay,
-                         int16_t *az);
+// ========================================================
+// API
+// ========================================================
+void     mpu_init(i2c_t *i2c);
+uint8_t  mpu_whoami(i2c_t *i2c);
 
-void mpu6050_read_gyro(int16_t *gx,
+void     mpu_read_accel(i2c_t *i2c,
+                        int16_t *ax,
+                        int16_t *ay,
+                        int16_t *az);
+
+void     mpu_read_gyro(i2c_t *i2c,
+                       int16_t *gx,
                        int16_t *gy,
                        int16_t *gz);
 
-int16_t mpu6050_read_temp(void);
+int16_t  mpu_read_temp(i2c_t *i2c);
 
-/* Low-level access (optional) */
-void    mpu6050_write_reg(uint8_t reg, uint8_t val);
-uint8_t mpu6050_read_reg(uint8_t reg);
-static void mpu6050_read(uint8_t reg, uint8_t *buf, uint8_t len);
+#ifdef __cplusplus
+}
+#endif
 
-#endif /* MPU6050_H */
+#endif
