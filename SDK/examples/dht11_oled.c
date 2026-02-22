@@ -4,16 +4,16 @@
 #include <stdint.h>
 #include "delay.h"
 #include "dht11.h"
-#include "softi2c.h"
-#include "ssd1306.h"
+#include "i2c_master.h"
+#include "ssd.h"
 #include "my_string.h"
-
+#define I2C I2C0
 int main(void){
     uint32_t temperature, humidity;
     char tmp[4],hum[4];
     dht11_init(4);//DHT pin is GPIO-4 i.e. pin7 of JB header
-    softi2c_init();
-    ssd1306_init();
+    //softi2c_init();
+    ssd1306_init(&I2C);
     ssd1306_set_cursor(0, 2);
     ssd1306_write_string("Temp & Humidity Stat");
     ssd1306_set_cursor(3, 2);
