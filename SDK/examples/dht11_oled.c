@@ -12,7 +12,6 @@ int main(void){
     uint32_t temperature, humidity;
     char tmp[4],hum[4];
     dht11_init(4);//DHT pin is GPIO-4 i.e. pin7 of JB header
-    //softi2c_init();
     ssd1306_init(&I2C);
     ssd1306_set_cursor(0, 2);
     ssd1306_write_string("Temp & Humidity Stat");
@@ -52,6 +51,7 @@ int main(void){
     delay(10000000);
 }
 }
+
 
 
 
