@@ -29,6 +29,14 @@ void timer_delay_us(Timer_TypeDef *timer, uint32_t val) {
     while(timer_status(timer) == 0); 
 }
 
+/* =========================================================
+   Get Current Count Value
+   ========================================================= */
+void timer_getcount(Timer_TypeDef *timer,uint32_t *count)
+{
+    *count = timer->COUNT_VAL;
+}
+
 void timer_delay_ms(Timer_TypeDef *timer,uint32_t ms) 
 {
     while (ms--) 
