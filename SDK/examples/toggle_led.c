@@ -30,7 +30,7 @@ void setup(void)
 {
     //for (uint8_t pin = 8; pin <= 15; pin++)
        // pinMode(pin, OUTPUT);
-       pinMode(10, OUTPUT);
+       pinMode(10, OUTPUT);//on board led connected to gpio-10
 }
 
 int main(void)
@@ -44,4 +44,5 @@ int main(void)
 
      }
 }
+
 
