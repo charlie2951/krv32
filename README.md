@@ -33,11 +33,13 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 |UART2_TX|JA[pin 1]|
 |UART2_RX|JA[pin 2]|
 |GPIO[0-7]|JB header, pin-1,2,3,4,7,8,9,10|
-|Soft I2C SDA|JB pin-1|
-|soft I2C SCL| JB pin-2|
+|I2C0 SDA|JA pin-3|
+|I2C0 SCL| JA pin-4|
+|I2C1 SDA|JA pin-7|
+|I2C1 SCL| JA pin-8|
 | BOOT_Enable| J15 (High=BOOT mode, Low=Execution mode)|
 |AES Crypto IP| Internally accessable via memory mapped registers|
-| Hardware Timer|Internally accessable|
+| Hardware Timer-0, Timer-1|Internally accessable|
 |CPU Reset| C12|
 
 <p>
