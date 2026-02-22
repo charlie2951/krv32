@@ -83,6 +83,7 @@ set rtl_files [list \
     $RTL_DIR/uart1_tx.v \
     $RTL_DIR/uart1_rx.v \
     $RTL_DIR/timer_gpio.v \
+    $RTL_DIR/timer1_gpio.v \
     $RTL_DIR/timer_counter.v \
 
 ]
@@ -174,4 +175,5 @@ puts "MCS file generation complete: $mcs_file"
 puts "MCS file should be located in the impl_1 run directory."
 
 close_project
+
 
