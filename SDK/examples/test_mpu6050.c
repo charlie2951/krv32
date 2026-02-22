@@ -21,143 +21,55 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include <stdint.h>
-#include <stdio.h>
+#include "i2c.h"
+#include "mpu6050.h"
 #include "uart.h"
 #include "delay.h"
-#include "softi2c.h"
-#include "mpu6050.h"
-
-// GPIO->0 used for SDA and GPIO-1 for SCL, already defined in Soft_i2c header
-// Simple integer print buffer //
-static char buf[64];
-
-//ascii conversion
-volatile uint8_t byte_to_hex_ascii(uint8_t data)
-{
-    volatile uint8_t low_nibble  = data & 0x0F;
-    volatile uint8_t ascii;
-   
-    // Convert low nibble
-    if (low_nibble >= 0 && low_nibble <10)
-        ascii = 48 + low_nibble;
-    else
-        ascii = 55 + low_nibble;
-
-   return ascii;
-}
-//function to print hex as ascii in serial terminal
-void print_data(int16_t data)
-{
-volatile uint32_t i;
-volatile uint32_t  uart_txdata;
-  
-if(data < 0)
-uart_send(UART1,'-');//print neg sign
-uart_sendline(UART1,"0x");
-for(i=0;i<4;i++) //send all 4 byte
-  {
-  //uart_txdata = (data >> (28 - (i * 4))) & 0x0F;  
-  uart_txdata = (data >> (12 - (i * 4))) & 0x0F;
-
-  volatile uint8_t ascii = byte_to_hex_ascii(uart_txdata);
-  uart_send(UART1,ascii);//will print byte wise
-  //delay(1000);
-  }
-}
-
-//helper func replacement of snprintf()
-
-static void print_int(int16_t val)
-{
-    static char tmp[8];
-    int i = 0;
-
-    if (val < 0)
-    {
-        uart_send(UART1, '-');
-        val = -val;
-    }
-
-    do {
-        tmp[i++] = '0' + (val % 10);
-        val /= 10;
-    } while (val);
-
-    while (i--)
-        uart_send(UART1, tmp[i]);
-}
-
-
-
+#define I2C I2C0 //select which I2C is used
 int main(void)
 {
-     static int16_t ax, ay, az;
-     static int16_t gx, gy, gz;
+    mpu_init(&I2C);
 
-    // Init peripherals //
-    uart_init(UART1);          // Debug UART
-    softi2c_init();
+    uint8_t id = mpu_whoami(&I2C);
+ uart_sendline(UART1, "\r\nDevice ID: ");
+    uart_sendnumber(UART1,id);
+    int16_t ax, ay, az;
+    int16_t gx, gy, gz;
+   // mpu_read_accel(&I2C, &ax, &ay, &az);
 
-    uart_sendline(UART1, "\r\nMPU6050 Test Start\r\n");
-
-    // Init MPU6050 //
-    if (!mpu6050_init())
-    {
-        uart_sendline(UART1, "MPU6050 not detected!\r\n");
-        while (1);
-    }
-
-    uart_sendline(UART1, "MPU6050 OK\r\n");
-
-    while (1)
-    {
-        //sanity test-1
-        // int16_t val=mpu6050_who_am_i();//test passed
-         // print_data(val);
-
-        //sanity test2
-        // int8_t axh = softi2c_read_reg(0x68, 0x3B);//passed
-       //  int8_t axl = softi2c_read_reg(0x68, 0x3C);//passed
-       //  int16_t val = (int16_t)((axh << 8) | axl);
-       //  print_data(val);
-        //  print_data(axh);
-        // uart_sendline(UART1, ",: ");
-        // print_data(axl);
-       //  uart_sendline(UART1, "\r\n");
-        // Read sensors //
-        
-         mpu6050_read_accel(&ax, &ay, &az);
-         mpu6050_read_gyro(&gx, &gy, &gz);
-         uint16_t temperature=(mpu6050_read_temp()/340)+36;//converting raw temp data to 'C
-
+    while (1){
+        mpu_read_accel(&I2C, &ax, &ay, &az);
+        mpu_read_gyro(&I2C, &gx, &gy, &gz);
+        uint16_t temperature=(mpu_read_temp(&I2C)/340)+36;//converting raw temp data to 'C
+        // Place breakpoint here to inspect values
         // Print accel //
-        uart_sendline(UART1, "ACC X:");
-        print_int(ax);
+        uart_sendline(UART1, "\r\nACC X:");
+        uart_sendnumber(UART1,ax);
         uart_sendline(UART1, " Y:");
-        print_int(ay);
+        uart_sendnumber(UART1,ay);
         uart_sendline(UART1, " Z:");
-        print_int(az);
+        uart_sendnumber(UART1,az);
        // uart_sendline(UART1, "\r\n");
         
 
         // Print gyro //
         
         uart_sendline(UART1, " GYRO X:");
-        print_int(gx);
+        uart_sendnumber(UART1,gx);
         uart_sendline(UART1, " Y:");
-        print_int(gy);
+       uart_sendnumber(UART1,gy);
         uart_sendline(UART1, " Z:");
-        print_int(gz);
-       // uart_sendline(UART1, "\r\n");
-        // Print Temperature raw data
+        uart_sendnumber(UART1,gz);
+        //print temp
         uart_sendline(UART1, "  Temp: ");
-        print_int(temperature);
-        uart_sendline(UART1," 'C");
-        uart_sendline(UART1, "\r\n");
-      //wait for some time to fetch next data byte
+        uart_sendnumber(UART1,temperature);
+        uart_sendline(UART1,"'C");
         delay(2000000);
     }
-}
+
+    return 0;
+    }
+
+
 
 
