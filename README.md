@@ -27,44 +27,49 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 
 ## GPIO mapping along with FPGA pin details
 
-| Peripheral | Nexys4- DDR FPGA used Pins      |
-|------------|:------------------------------------:|
-| LED (GPIO[8-15]       |  U16, U17, V17, R18, N14, J13, K15, H17  |
-| UART1_TX    |  D4                  |
-| UART1_RX    |  C4                  |
-|UART2_TX|JA[pin 1]|
-|UART2_RX|JA[pin 2]|
-|GPIO[0-7]|JB header, pin-1,2,3,4,7,8,9,10|
-|I2C0 SDA|JA pin-3|
-|I2C0 SCL| JA pin-4|
-|I2C1 SDA|JA pin-7|
-|I2C1 SCL| JA pin-8|
-| BOOT_Enable| J15 (High=BOOT mode, Low=Execution mode)|
-|AES Crypto IP| Internally accessable via memory mapped registers|
-| Hardware Timer-0, Timer-1|Internally accessable|
-|CPU Reset| C12|
+| Peripheral | Nexys4- DDR pin mapping      | Basys-3 board Pin mapping|
+|------------|:------------------------------------:|:------------------:|
+| LED (GPIO[8-15]       |  U16, U17, V17, R18, N14, J13, K15, H17  |xx xx xx xx|
+| UART1_TX    |  D4                  |xx xx |
+| UART1_RX    |  C4                  |xx xx|
+|UART2_TX|JA[pin 1]| JA[pin 1]|
+|UART2_RX|JA[pin 2]| JA[pin 2]|
+|GPIO[0-7]|JB header, pin-1,2,3,4,7,8,9,10| Same as Nexys4|
+|I2C0 SDA|JA pin-3| JA pin-3|
+|I2C0 SCL| JA pin-4| JA pin-4|
+|I2C1 SDA|JA pin-7|JA pin-7|
+|I2C1 SCL| JA pin-8|JA pin-8|
+| BOOT_Enable| J15 (High=BOOT mode, Low=Execution mode)|V17|
+|AES Crypto IP| Internally accessable via memory mapped registers|xx|
+| Hardware Timer-0, Timer-1|Internally accessable|xx|
+|CPU Reset| C12|U18|
 
 <p>
 For Nexys-4 DDR board which uses Artix-7 series FPGA, LEDS are active high and total 8 LEDs are connected. Refer to the table mentioned above. <p>
 	
 ## Steps to build the Vivado project (Tested on Vivado 2024.2)
 1. Clone the repo.
-2. For windows user, open Vivado TCL prompt and navigate to the cloned directory inside which the `build_project.tcl` file is present. For example, use the following as a reference. Type the following to change the directory to cloned repo (check path on your pc. Also, in TCL script, the slashes are opposite to the Windows system) `C:\Users\subir\Downloads\krv32-4.0\krv32-4.0`. For Linux user, you can open the shell inside the cloned repo directory.
-3. Source the configuration `TCL`  script by typing `source build_project.tcl`. Everything will be automatically compiled and synthesis and implementation followed by bit file and MCS file generation will takes place. If you already have a project in the same name/ you are building the project for 2nd time, run the script 2 times. For the 1st time it will delete previous project and 2nd time it will build a fresh project from the beginning.
+2. For Windows users, open Vivado TCL prompt and navigate to the cloned directory inside which the `TCL` script file `build_nexys4ddr.tcl` for `Nexys-4 DDR` board and `build_basys3.tcl` for `Basys-3` board is present. For example, use the following as a reference. Type the following to change the directory to cloned repo (check path on your pc. Also, in TCL script, the slashes are opposite to the Windows system) `C:\Users\subir\Downloads\krv32-4.0\krv32-4.0`. For Linux user, you can open the shell inside the cloned repo directory.
+3. Source the configuration `TCL`  script by typing `source build_<board_name>.tcl`. Everything will be automatically compiled and synthesis and implementation followed by bit file and MCS file generation will takes place. If you already have a project in the same name/ you are building the project for 2nd time, run the script 2 times. For the 1st time it will delete previous project and 2nd time it will build a fresh project from the beginning.
 4. Program the `.mcs` file into flash (separate instruction available below :point_down:). Now the SoC is ready to interact and to upload `.hex` file using bootloader script.
 5. Now change the mode to `boot` and upload `.hex` file. For details, see the `bootloader` directory's `README` file. 
 
-## Steps for writing MCS file into FPGA Board's Flash memory (Tested on Nexys4-DDR board with Vivado 2024.2)
+## Steps for writing MCS file into FPGA Board's Flash memory (Tested on Nexys4-DDR and Basys-3 board with Vivado 2024.2)
 1. Open Vivado GUI and Open Hardware manager after connecting the board to pc.
    <img width="605" height="380" alt="image" src="https://github.com/user-attachments/assets/0b190e41-a44a-4e24-8d88-d8b7e99a4878" />
 2. Click on `open-target` followed by `Auto-connect`.
-3. Select the `Add configuration memory device` after right click on device `xc7a100t_0` as shown in figure below.
+3. Select the `Add configuration memory device` after right click on device `xc7a100t_0` as shown in figure below. Follow same method for Basys-3 board. Here part name will be different (xc7a35t) <p>
    <img width="412" height="383" alt="image" src="https://github.com/user-attachments/assets/c844924d-fe56-44e1-8b89-3b8aafaf8081" />
-4. Select the proper flash part as shown below. This may vary from board to board, even with same board with different version. Check your product manual carefully.
+   
+4. Select the proper flash part as shown below. This may vary from board to board, even with same board with different version. Check your product manual carefully.<p>
    <img width="764" height="367" alt="image" src="https://github.com/user-attachments/assets/d031add0-1a5e-40be-a11d-b3b5ad2fb8f8" />
-5. Browse and select the MCS file which should be inside `impl_1` folder of project dir. Program the flash.
+   <p></p>
+	For Basys-3 board, follow this <p>
+   <img width="595" height="364" alt="basys" src="https://github.com/user-attachments/assets/a8646c4f-b8ee-49e1-b926-2f1c89323345" />
+
+6. Browse and select the MCS file which should be inside `impl_1` folder of project dir. Program the flash.
    <img width="324" height="440" alt="image" src="https://github.com/user-attachments/assets/c6484a6b-ecd4-4cea-ad51-a3d68b55cc4e" />
-6. **You can also prebuild `MCS` file available in repo and directly load it in flash using `Hardware manager` of `Vivado`**
+7. **You can also prebuild `MCS` file available in repo and directly load it in flash using `Hardware manager` of `Vivado`**
 
 
 
