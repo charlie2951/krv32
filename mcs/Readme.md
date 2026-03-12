@@ -2,4 +2,4 @@
 ## For Nexys-4 DDR 
 Use file `nexys4ddr.mcs`
 ## For Basys-3
-Use file `basys3.mcs`
+Use file `basys3.mcs` for MCS and `.bit` file in case if required.
