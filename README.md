@@ -33,9 +33,9 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 
 | Peripheral | Nexys4- DDR pin mapping      | Basys-3 board Pin mapping|
 |------------|:------------------------------------:|:------------------:|
-| LED (GPIO[8-15]       |  U16, U17, V17, R18, N14, J13, K15, H17  |xx xx xx xx|
-| UART1_TX    |  D4                  |xx xx |
-| UART1_RX    |  C4                  |xx xx|
+| LED (GPIO[8-15]       |  U16, U17, V17, R18, N14, J13, K15, H17  |U16 to V14(total 8 LEDs)|
+| UART1_TX    |  Internally connected                  |Internally connected |
+| UART1_RX    |  Internally connected                  |Internally connected|
 |UART2_TX|JA[pin 1]| JA[pin 1]|
 |UART2_RX|JA[pin 2]| JA[pin 2]|
 |GPIO[0-7]|JB header, pin-1,2,3,4,7,8,9,10| Same as Nexys4|
@@ -43,11 +43,12 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 |I2C0 SCL| JA pin-4| JA pin-4|
 |I2C1 SDA|JA pin-7|JA pin-7|
 |I2C1 SCL| JA pin-8|JA pin-8|
-|Soft SPI| JB-0(sck), JB-1(mosi), JB-2(miso), JB-3(cs)|same|
+|Soft SPI master(GPIO bit banging)| JB-0(sck), JB-1(mosi), JB-2(miso), JB-3(cs)|same|
+|Hardware SPI master| JC-0(cs), JC-1(sck), JC-2(mosi), JC-3(miso)|same|
 |7-seg display|Internally connected Disp-0 to 3| Same|
 | BOOT_Enable| J15 (High=BOOT mode, Low=Execution mode)|V17|
-|AES Crypto IP| Internally accessable via memory mapped registers|xx|
-| Hardware Timer-0, Timer-1|Internally accessable|xx|
+|AES Crypto IP| Internally accessable via memory mapped registers|same|
+| Hardware Timer-0, Timer-1|Internally accessable|same|
 |CPU Reset| C12|U18|
 
 <p>
@@ -358,8 +359,8 @@ Tested and verified in `Artix-7` series FPGA-based `Nexys-4 DDR` board.
 SoC Version-4 is more hardware-efficient in terms of FPGA resources and more feature-rich with added peripherals. Previous versions (V1.0) consume 34% LUT, V2 takes only 14%. Program memory is isolated from the CPU core to bring more flexibility. GPIO logic is also isolated and implemented at `top.v` file (top module).
 
 ***Known issues/bugs*** <p>
-Date:15/3/2026: SPI hardware not working, software spi via bit banging using GPIO working
-
+-all resolved, no known issue<p>
+-AES crypto SDK library not verified, in development phase.
 <p>
 
 
