@@ -25,7 +25,10 @@ DRV_OBJS = \
 	$(INC_DIR)/my_string.o \
 	$(INC_DIR)/timer.o \
 	$(INC_DIR)/dht11.o \
-	$(INC_DIR)/delay.o
+	$(INC_DIR)/delay.o \
+	$(INC_DIR)/soft_spi.o	\
+	$(INC_DIR)/soft_w25q.o \
+    $(INC_DIR)/seven_seg.o 
 
 # -------------------------------------------------
 # Compiler / Linker Flags
