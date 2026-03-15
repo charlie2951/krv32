@@ -43,6 +43,7 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 |I2C1 SDA|JA pin-7|JA pin-7|
 |I2C1 SCL| JA pin-8|JA pin-8|
 |Soft SPI| JB-0(sck), JB-1(mosi), JB-2(miso), JB-3(cs)|same|
+|7-seg display|Internally connected Disp-0 to 3| Same|
 | BOOT_Enable| J15 (High=BOOT mode, Low=Execution mode)|V17|
 |AES Crypto IP| Internally accessable via memory mapped registers|xx|
 | Hardware Timer-0, Timer-1|Internally accessable|xx|
