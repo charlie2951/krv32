@@ -357,9 +357,7 @@ Tested and verified in `Artix-7` series FPGA-based `Nexys-4 DDR` board.
 SoC Version-4 is more hardware-efficient in terms of FPGA resources and more feature-rich with added peripherals. Previous versions (V1.0) consume 34% LUT, V2 takes only 14%. Program memory is isolated from the CPU core to bring more flexibility. GPIO logic is also isolated and implemented at `top.v` file (top module).
 
 ***Known issues/bugs*** <p>
-Date: 16/04/2025: Bug: Arithmetic right shift SRA, SRAI not working<p>
-Date: 5/6/2025: Bug fixed `SRA` and `SRAI` instructions. No known bug.
-Date: 2/2/2026: Bug fixed in ALU
+Date:15/3/2026: SPI hardware not working, software spi via bit banging using GPIO working
 
 <p>
 
