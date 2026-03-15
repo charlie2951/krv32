@@ -13,10 +13,10 @@
 #define CMD_JEDEC_ID       0x9F
 
 // Prototypes
-void w25q_read_id(uint8_t *id_buf);
-void w25q_read_data(uint32_t addr, uint8_t *buffer, uint32_t len);
-void w25q_erase_sector(uint32_t addr);
-void w25q_write_page(uint32_t addr, uint8_t *data, uint16_t len);
+void soft_w25q_read_id(uint8_t *id_buf);
+void soft_w25q_read_data(uint32_t addr, uint8_t *buffer, uint32_t len);
+void soft_w25q_erase_sector(uint32_t addr);
+void soft_w25q_write_page(uint32_t addr, uint8_t *data, uint16_t len);
 void byte_to_hex(uint8_t val, char *dest);
 
 #endif
