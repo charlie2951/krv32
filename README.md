@@ -8,14 +8,17 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 2. Compatible with GNU toolchain
 3. Soft-IP, configurable as per your FPGA
 4. On-board LEDS can be interfaced using the C SDK
-5. Fully functional UART Transmitter and Receiver (currently supports 115200 baud rate only)
+5. Fully functional UART Transmitter and Receiver (currently supports 115200 baud rate only), one for debug and another for sensor interfacing
 6. BRAM-based BOOTLOADER support (does not need to generate bitstream every time while changing application code)
-7. Crypto core based on 32 bit AES, both encryption and decryption
-8. Hardware timer and free-running counter for generating an accurate delay
-9. Tested in Artix-7 series FPGA embedded in Digilent Nexys-4 DDR board
-10. Timing violations are fixed at 100MHz.
-11. SDK with customized `Makefile` and a variety of drivers for sensor interfacing
-12. Several example demo has been provided
+7. Two dedicated hardware I2C master controllers support both slow and fast modes for sensor interfacing.
+8. Soft SPI library to access SPI peripherals and flash memory(single spi supported only).
+9. Dedicated hardware IP for onboard 7-segment display.
+10. Crypto core based on 32 bit AES, both encryption and decryption
+11. Hardware timer and free-running counter for generating an accurate delay
+12. Tested in Artix-7 series FPGA embedded in Digilent Nexys-4 DDR board
+13. Timing violations are fixed at 100MHz.
+14. SDK with customized `Makefile` and a variety of drivers for sensor interfacing
+15. Several example demo has been provided
    <p></p>
 
 ## Directory Description
@@ -39,6 +42,7 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 |I2C0 SCL| JA pin-4| JA pin-4|
 |I2C1 SDA|JA pin-7|JA pin-7|
 |I2C1 SCL| JA pin-8|JA pin-8|
+|Soft SPI| JB-0(sck), JB-1(mosi), JB-2(miso), JB-3(cs)|same|
 | BOOT_Enable| J15 (High=BOOT mode, Low=Execution mode)|V17|
 |AES Crypto IP| Internally accessable via memory mapped registers|xx|
 | Hardware Timer-0, Timer-1|Internally accessable|xx|
