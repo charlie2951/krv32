@@ -19,12 +19,12 @@ int main() {
     spi_bb_init();
     
     // Test Erase/Write/Read
-    w25q_erase_sector(target_addr);
-    w25q_write_page(target_addr, write_buf, 4);
-    w25q_read_data(target_addr, read_buf, 4);
+    soft_w25q_erase_sector(target_addr);
+    soft_w25q_write_page(target_addr, write_buf, 4);
+    soft_w25q_read_data(target_addr, read_buf, 4);
 
     while (1) {
-        w25q_read_id(ids);
+        soft_w25q_read_id(ids);
         uart_sendline(UART1, "\r\nDevice ID: ");
         byte_to_hex(ids[0], hex_str);
         uart_sendline(UART1, hex_str);
