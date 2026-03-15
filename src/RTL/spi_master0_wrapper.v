@@ -1,58 +1,78 @@
-module spi_riscv_wrapper (
+module riscv_spi_wrapper (
     input  wire        clk,
     input  wire        reset,
-    input  wire [31:0] addr,
-    input  wire [31:0] data_in,
-    output reg  [31:0] data_out,
-    input  wire        rd_strobe,
-    input  wire [3:0]  wr_strobe,
+    
+    // CPU Bus Interface
+    input  wire [31:0] addr,      // 32-bit Address
+    input  wire [31:0] data_in,   // Data from CPU to Peripheral
+    output reg  [31:0] data_out,  // Data from Peripheral to CPU
+    input  wire        rd_strobe, // Read Enable
+    input  wire [3:0]  wr_strobe, // Write Enable (byte-wise)
+    
+    // SPI Physical Pins
+    output reg         spi_cs_n,  // Active Low Chip Select
     output wire        sclk,
     output wire        mosi,
-    input  wire        miso,
-    output reg         cs_pin  // Manually controlled CS
+    input  wire        miso
 );
 
-    wire base_hit = (addr & 32'hFFFFFFF0) == 32'hC1000000;
-    reg  start_reg;
-    wire [7:0] rx_data_wire;
-    wire busy_wire;
-    wire internal_cs; // We ignore the core's auto-CS now
+    // Internal Signals
+    wire [7:0] rx_byte;
+    reg  [7:0] tx_byte;
+    reg        spi_start;
+    wire       spi_busy;
 
-    spi_master_full spi_core (
-        .clk(clk), .reset(reset),
-        .tx_data(data_in[7:0]), .start(start_reg),
-        .rx_data(rx_data_wire), .sclk(sclk),
-        .mosi(mosi), .miso(miso),
-        .cs(internal_cs), .busy(busy_wire)
-    );
+    // Address Decoding
+    wire base_sel    = (addr[31:4] == 28'hC100000); // Match 0xC100000X
+    wire ctrl_reg_sel = base_sel && (addr[3:0] == 4'h0); // 0xC1000000
+    wire data_reg_sel = base_sel && (addr[3:0] == 4'h4); // 0xC1000004
 
-    always @(posedge clk) begin
+    // --- Bus Write Logic ---
+    always @(posedge clk ) begin
         if (reset) begin
-            start_reg <= 0;
-            cs_pin    <= 1; // Idle High
+            spi_start <= 0;
+            spi_cs_n  <= 1; // Default idle (High)
+            tx_byte   <= 8'h00;
         end else begin
-            start_reg <= 0;
-            if (base_hit && wr_strobe != 0) begin
-                case (addr[3:0])
-                    4'h4: if (data_in[0]) start_reg <= 1;
-                    4'h8: cs_pin <= data_in[0]; // Manually set CS
-                endcase
+            spi_start <= 0; // Pulse logic: only high for one cycle
+            
+            if (|wr_strobe) begin
+                if (ctrl_reg_sel) begin
+                    spi_start <= data_in[0]; // Write bit 0 to start
+                    spi_cs_n  <= data_in[2]; // Write bit 2 to control CS
+                end
+                if (data_reg_sel) begin
+                    tx_byte   <= data_in[7:0];
+                end
             end
         end
     end
 
+    // --- Bus Read Logic ---
     always @(posedge clk) begin
-       if(reset) 
-	data_out <= 32'b0;
-else begin
-        if (base_hit && rd_strobe) begin
-            case (addr[3:0])
-                4'h0: data_out <= {24'b0, rx_data_wire};
-                4'h4: data_out <= {31'b0, busy_wire};
-                4'h8: data_out <= {31'b0, cs_pin};
-                default: data_out <= 32'b0;
-            endcase
+        if (rd_strobe) begin
+            if (ctrl_reg_sel)
+                data_out = {29'b0, spi_cs_n, spi_busy, 1'b0};
+            else if (data_reg_sel)
+                data_out = {24'b0, rx_byte};
+            else
+                data_out = 32'h0;
+        end else begin
+            data_out = 32'h0;
         end
     end
-end
+
+    // --- Instantiate the SPI Controller ---
+    spi_master_divided #(.CLK_DIV(50)) spi_core (
+        .clk(clk),
+        .reset(reset),
+        .start(spi_start),
+        .tx_data(tx_byte),
+        .rx_data(rx_byte),
+        .busy(spi_busy),
+        .sclk(sclk),
+        .mosi(mosi),
+        .miso(miso)
+    );
+
 endmodule

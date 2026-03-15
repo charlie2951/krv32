@@ -208,7 +208,7 @@ seven_seg_mmio seg0 (
 assign an[7:4]=4'b1111;
 
 // SPI-0 Master w25q flash interface
-spi_riscv_wrapper spi0(
+riscv_spi_wrapper spi0(
 .clk(clk),
 .reset(!rst),
 .addr(addr),
@@ -216,7 +216,7 @@ spi_riscv_wrapper spi0(
 .data_out(SPI0_DATA),
 .rd_strobe(rstrb),
 .wr_strobe(wr_strobe),
-.cs_pin(SS),
+.spi_cs_n(SS),
 .sclk(SCK),
 .mosi(MOSI),
 .miso(MISO)
