@@ -1,4 +1,5 @@
-![](https://komarev.com/ghpvc/?username=charlie2951&color=brightgreen)
+![](https://komarev.com/ghpvc/?username=charlie2951&color=brightgreen) 
+
 # A subset of RISC-V architecture (RV32I) SoC implementation for FPGA 
 A tiny version of `RISC-V` for low-resource FPGA developed by the **Integrated System Design lab, School of Electronics, KIIT University** <p>
 **Objective**
