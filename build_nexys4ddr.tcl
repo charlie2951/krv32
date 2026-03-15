@@ -64,7 +64,7 @@ puts "Adding specific RTL sources..."
 # so the script knows where to find them.
 
 set rtl_files [list \
-    $RTL_DIR/top.v \
+    $RTL_DIR/top_nexys4ddr.v \
     $RTL_DIR/cpu.v \
     $RTL_DIR/progmem.v \
     $RTL_DIR/bootmem.v \
@@ -112,7 +112,7 @@ set_property file_type SystemVerilog [get_files $RTL_DIR/clock_counter.sv]
 update_compile_order -fileset sources_1
 
 # Define the path to your constraint file
-set SDC_FILE_PATH "./src/top.xdc"
+set SDC_FILE_PATH "./src/nexys4ddr.xdc"
 #set SDC_FILE_PATH "./src/Basys-3-Master.xdc"
 
 # Add the SDC file to the constraints fileset
