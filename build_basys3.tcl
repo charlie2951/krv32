@@ -167,8 +167,8 @@ puts "Bitstream file should be located in the impl_1 run directory."
 # Generating MCS file
 puts "------ Generating MCS file for Flash -----"
 # 1. Define your file paths and parameters
-set bit_file "$PROJECT_DIR/$PROJECT_NAME.runs/impl_1/$TOP_MODULE.bit"
-set mcs_file "$PROJECT_DIR/$PROJECT_NAME.runs/impl_1/$TOP_MODULE.mcs"
+set bit_file "$PROJECT_DIR/$PROJECT_NAME.runs/impl_1/basys3.bit"
+set mcs_file "$PROJECT_DIR/$PROJECT_NAME.runs/impl_1/basys3.mcs"
 set flash_size "16"
 set interface "SPIx4"
 
