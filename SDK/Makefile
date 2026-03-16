@@ -27,7 +27,10 @@ DRV_OBJS = \
 	$(INC_DIR)/dht11.o \
 	$(INC_DIR)/delay.o \
 	$(INC_DIR)/soft_spi.o	\
+	$(INC_DIR)/spi.o	\
+	$(INC_DIR)/w25q.o \
 	$(INC_DIR)/soft_w25q.o \
+    $(INC_DIR)/i2c_adxl345.o \
     $(INC_DIR)/seven_seg.o 
 
 # -------------------------------------------------
