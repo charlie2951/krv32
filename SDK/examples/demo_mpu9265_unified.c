@@ -1,6 +1,6 @@
 //Demp code to use MPU 9265 via SPI or I2C bus
 //Note: Magnetometer reading not available while using SPI mode
-//Inside MOU9265, magnetometer chip uses I2C bus and its access via SPI is tricky
+//Inside MPU9265, magnetometer chip uses I2C bus and its access via SPI is tricky
 // If using I2C, you will get all reading
 
 #include "mpu9265.h"
