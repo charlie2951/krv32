@@ -18,7 +18,7 @@ int main() {
 
     while(1) {
         // 3. Read Data
-        adxl345_read(&I2C0, &accel);
+        adxl345_i2c_read(&I2C0, &accel);
         uart_sendline(UART1,"ADXL345 Data: X=");
         uart_sendnumber(UART1,accel.x);
         uart_sendline(UART1, " y=");
