@@ -30,7 +30,7 @@ DRV_OBJS = \
 	$(INC_DIR)/spi.o	\
 	$(INC_DIR)/w25q.o \
 	$(INC_DIR)/soft_w25q.o \
-    $(INC_DIR)/i2c_adxl345.o \
+    $(INC_DIR)/adxl345.o \
 	$(INC_DIR)/bmp180.o \
     $(INC_DIR)/seven_seg.o 
 
