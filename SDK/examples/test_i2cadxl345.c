@@ -1,6 +1,6 @@
 #include "i2c.h"
 #include "uart.h"
-#include "i2c_adxl345.h"
+#include "adxl345.h"
 #include <stdint.h>
 #include "delay.h"
 int main() {
@@ -11,7 +11,7 @@ int main() {
     i2c_init(&I2C0, 249);
     
     // 2. Init Sensor
-    if (adxl345_init(&I2C0) != 0) {
+    if (adxl345_i2c_init(&I2C0) != 0) {
         uart_sendline(UART1,"Handle Error: Sensor not responding!\r\n");
         while(1);//stop execution, hang in loop
     }
