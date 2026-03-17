@@ -32,6 +32,7 @@ DRV_OBJS = \
 	$(INC_DIR)/soft_w25q.o \
     $(INC_DIR)/adxl345.o \
 	$(INC_DIR)/bmp180.o \
+	$(INC_DIR)/mpu9265.o \
     $(INC_DIR)/seven_seg.o 
 
 # -------------------------------------------------
