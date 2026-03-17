@@ -1,103 +1,98 @@
-module spi_master_divided #(
-    parameter CLK_DIV = 50 // Divide system clock by 50 (e.g., 100MHz -> 2MHz SPI)
-)(
-    input  wire       clk,      
-    input  wire       reset,    
-    input  wire       start,    
-    input  wire [7:0] tx_data,  
-    output reg  [7:0] rx_data,  
-    output reg        busy,     
+module spi_master_universal (
+    input  wire        clk,      // System Clock (e.g., 100MHz)
+    input  wire        reset,    
+    input  wire        start,    
+    input  wire [7:0]  tx_data,  
+    output reg  [7:0]  rx_data,  
+    output reg         busy,     
+    
+    // Configuration Inputs (Accessible via C/Registers)
+    input  wire [15:0] clk_div,  // Clock Divider value
+    input  wire        cpol,     // 0: Idle Low, 1: Idle High
+    input  wire        cpha,     // 0: Sample on 1st edge, 1: Sample on 2nd edge
     
     // SPI Physical Interface
-    output reg        sclk,
-    output reg        mosi,
-    input  wire       miso
+    output reg         sclk,
+    output reg         mosi,
+    input  wire        miso
 );
 
-    // --- Clock Divider / Enable Logic ---
+    // --- Dynamic Clock Divider ---
     reg [15:0] clk_cnt;
-    wire tick; // High for one system clock cycle every CLK_DIV cycles
+    wire tick = (clk_cnt >= clk_div);
 
-    assign tick = (clk_cnt == CLK_DIV - 1);
-
-    always @(posedge clk ) begin
-        if (reset) 
+    always @(posedge clk) begin
+        if (reset || !busy) 
             clk_cnt <= 0;
-        else if (busy)
+        else 
             clk_cnt <= tick ? 0 : clk_cnt + 1;
-        else
-            clk_cnt <= 0;
     end
 
-    // --- FSM States ---
-    parameter   IDLE    = 3'b000,
-                SETUP   = 3'b001, 
-                SAMPLE  = 3'b010, 
-                HOLD    = 3'b011, // Added for symmetric clock timing
-                DONE    = 3'b100;
+    // --- FSM ---
+    reg[2:0] state;
+    parameter   IDLE   = 3'b000,
+                LEAD   = 3'b001, // First edge of SCLK
+                TRAIL  = 3'b010, // Second edge of SCLK
+                DONE   = 3'b011;
     
 
-    reg [2:0] state;
+    
     reg [3:0] bit_cnt;
+    reg       mid_tick; // Used to handle CPHA setup timing
 
-    always @(posedge clk ) begin
+    always @(posedge clk) begin
         if (reset) begin
-            state    <= IDLE;
-            sclk     <= 0;
-            mosi     <= 0;
-            busy     <= 0;
-            rx_data  <= 0;
+            state   <= IDLE;
+            sclk    <= 0;
+            mosi    <= 0;
+            busy    <= 0;
+            rx_data <= 0;
         end else begin
             case (state)
                 IDLE: begin
                     busy <= 0;
-                    sclk <= 0;
+                    sclk <= cpol; // Set idle polarity
                     if (start) begin
-                        bit_cnt <= 7;
                         busy    <= 1;
-                        state   <= SETUP;
+                        bit_cnt <= 7;
+                        // For CPHA=0, MOSI must be ready BEFORE the first edge
+                        if (!cpha) mosi <= tx_data[7]; 
+                        state   <= LEAD;
                     end
                 end
 
-                SETUP: begin
+                LEAD: begin
                     if (tick) begin
-                        mosi  <= tx_data[bit_cnt]; // 1. Setup MOSI
-                        state <= SAMPLE;
+                        sclk <= !cpol; // Flip to active level
+                        // CPHA=0: Sample on Lead | CPHA=1: Setup on Lead
+                        if (!cpha) rx_data[bit_cnt] <= miso;
+                        else       mosi <= tx_data[bit_cnt];
+                        state <= TRAIL;
                     end
                 end
 
-                SAMPLE: begin
+                TRAIL: begin
                     if (tick) begin
-                        sclk  <= 1;                // 2. Rising Edge
-                        rx_data[bit_cnt] <= miso;  // 3. Sample MISO
-                        state <= HOLD;
-                    end
-                end
-
-                HOLD: begin
-                    if (tick) begin
-                        sclk <= 0;                 // 4. Falling Edge
-                        if (bit_cnt == 0)
-                            state <= DONE;
-                        else begin
-                            bit_cnt <= bit_cnt - 1;
-                            state   <= SETUP;
+                        sclk <= cpol; // Return to idle level
+                        // CPHA=0: Setup next bit | CPHA=1: Sample
+                        if (!cpha) begin
+                            if (bit_cnt > 0) begin
+                                bit_cnt <= bit_cnt - 1;
+                                mosi    <= tx_data[bit_cnt-1];
+                                state   <= LEAD;
+                            end else state <= DONE;
+                        end else begin
+                            rx_data[bit_cnt] <= miso;
+                            if (bit_cnt > 0) begin
+                                bit_cnt <= bit_cnt - 1;
+                                state   <= LEAD;
+                            end else state <= DONE;
                         end
                     end
                 end
-/*
+
                 DONE: begin
-                    if (tick) begin
-                        busy  <= 0;
-                        state <= IDLE;
-                    end
-                end
-                    */
-                DONE: begin
-                    busy <= 1; // Stay busy
-                    if (!start) begin // Only return to IDLE once CPU drops the start signal
-                        state <= IDLE;
-                    end
+                    if (!start) state <= IDLE;
                 end
             endcase
         end
