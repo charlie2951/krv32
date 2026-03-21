@@ -33,7 +33,10 @@ DRV_OBJS = \
     $(INC_DIR)/adxl345.o \
 	$(INC_DIR)/bmp180.o \
 	$(INC_DIR)/mpu9265.o \
-    $(INC_DIR)/seven_seg.o 
+    $(INC_DIR)/seven_seg.o \
+	$(INC_DIR)/printf.o \
+	$(INC_DIR)/esp_wifi.o \
+	$(INC_DIR)/thingspeak.o
 
 # -------------------------------------------------
 # Compiler / Linker Flags
