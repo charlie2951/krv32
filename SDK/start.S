@@ -2,7 +2,7 @@
  * RV32I startup code
  * ------------------------------------------------- */
 
-    .equ MEM_SIZE, 0x1000        /* 2 KB stack top */
+    .equ MEM_SIZE, 0x2000        /* 8 KB stack top */
 
     .section .text.start, "ax"
     .globl _start
