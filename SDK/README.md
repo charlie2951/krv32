@@ -1,4 +1,4 @@
-# KRV-32 Soft SoC SDK User Manual
+# KRV-32 Soft SoC SDK User Manual (not updated, see `example` and `include` dir for supported devices and sensors)
 ## Directory structure
 `include`: contains all driver headers <p>
 `<appname>.c`: Main C code for application programme<p>
