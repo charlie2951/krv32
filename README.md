@@ -4,6 +4,10 @@
 A tiny version of `RISC-V` for low-resource FPGA developed by the **Integrated System Design lab, School of Electronics, KIIT University** <p>
 **Objective**
 The main objective of this project is to prototype a RISC-V 32-bit CPU with an **RV32 base integer (RV32I) instruction set**. The CPU is coded using Verilog HDL from scratch and most of the instruction sets are implemented. The code is compatible with the GNU RISC-V toolchain (both assembler and compiler).
+
+> [!IMPORTANT]
+> **Detailed specifications and documentation section has been provided in the [Wiki page of KRV-32 Project](https://github.com/charlie2951/krv32/wiki/)**
+
 ## Features of KRV-32 soft IP SOC
 1. Supports RISC-V RV-32I extension
 2. Compatible with GNU toolchain
