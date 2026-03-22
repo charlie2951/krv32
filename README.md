@@ -1,4 +1,6 @@
-![](https://komarev.com/ghpvc/?username=charlie2951&color=brightgreen) ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/charlie2951/krv32?label=Total%20commit)
+![](https://komarev.com/ghpvc/?username=charlie2951&color=brightgreen) ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/charlie2951/krv32?label=Total%20commit) ![GitHub Repo stars](https://img.shields.io/github/stars/charlie2951/krv32?style=flat)
+
+
 
 
 # A subset of RISC-V architecture (RV32I) SoC implementation for FPGA 
