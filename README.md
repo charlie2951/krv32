@@ -1,9 +1,9 @@
 ![](https://komarev.com/ghpvc/?username=charlie2951&color=brightgreen) 
 
 # A subset of RISC-V architecture (RV32I) SoC implementation for FPGA 
-A tiny version of `RISC-V` for low-resource FPGA developed by the **Integrated System Design lab, School of Electronics, KIIT University** <p>
+A tiny version of `RISC-V` for FPGA developed by the **Integrated System Design lab, School of Electronics, KIIT University** <p>
 **Objective**
-The main objective of this project is to prototype a RISC-V 32-bit CPU with an **RV32 base integer (RV32I) instruction set**. The CPU is coded using Verilog HDL from scratch and most of the instruction sets are implemented. The code is compatible with the GNU RISC-V toolchain (both assembler and compiler).
+The main objective of this project is to prototype a RISC-V 32-bit CPU with an **RV32 base integer (RV32I) instruction set**. The CPU is coded using Verilog HDL from scratch, and most of the instruction sets are implemented. The code is compatible with the GNU RISC-V toolchain (both assembler and compiler).
 
 > [!IMPORTANT]
 > **Detailed specifications and documentation section has been provided in the [Wiki page of KRV-32 Project](https://github.com/charlie2951/krv32/wiki/)**
@@ -76,10 +76,12 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 `TUTORIAL` : Contains sample demo programs <p>
 `mcs`: Pre-build MCS file for Nexys4-DDR and Basys-3 board <p>
 
-***Known issues/bugs*** <p>
--all resolved, no known issue<p>
--ESP01 wifi library unable to print status
--AES crypto SDK library not verified, in development phase.
+> [!NOTE]
+> ***Known Limitations/issues/bugs*** <p>
+* The current version of CPU does not have interrupt support. Hence, peripherals must be accessed using a polling method.<p>
+* All resolved, no known issue<p>
+* ESP01 wifi library unable to print status<p>
+* AES crypto SDK library not verified, in development phase.
 <p>
 
 
