@@ -23,7 +23,7 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 9. Dedicated hardware IP for onboard 7-segment display.
 10. Crypto core based on 32 bit AES, both encryption and decryption
 11. Hardware timer and free-running counter for generating an accurate delay
-12. Tested in Artix-7 series FPGA embedded in Digilent Nexys-4 DDR board
+12. Tested in Artix-7 series FPGA embedded in Digilent Nexys-4 DDR and Basys-3 board
 13. Timing violations are fixed at 100MHz.
 14. SDK with customized `Makefile` and a variety of drivers for sensor interfacing
 15. Several example demos have been provided
