@@ -27,20 +27,24 @@ DRV_OBJS = \
 	$(INC_DIR)/dht11.o \
 	$(INC_DIR)/delay.o \
 	$(INC_DIR)/soft_spi.o	\
+	$(INC_DIR)/soft_w25q.o \
 	$(INC_DIR)/spi.o	\
 	$(INC_DIR)/w25q.o \
-	$(INC_DIR)/soft_w25q.o \
-    $(INC_DIR)/adxl345.o \
+	$(INC_DIR)/adxl345.o \
 	$(INC_DIR)/bmp180.o \
 	$(INC_DIR)/mpu9265.o \
-    $(INC_DIR)/seven_seg.o \
+	$(INC_DIR)/soft_ads1115.o \
+	$(INC_DIR)/mcp4725.o \
+	$(INC_DIR)/seven_seg.o \
 	$(INC_DIR)/printf.o \
 	$(INC_DIR)/esp_wifi.o \
-	$(INC_DIR)/thingspeak.o
+	$(INC_DIR)/thingspeak.o\
+	$(INC_DIR)/qspi.o \
+	$(INC_DIR)/bme280.o
 
 # -------------------------------------------------
 # Compiler / Linker Flags
-# -------------------------------------------------
+# ------------------------------------------------- 
 CFLAGS = -mabi=ilp32 -march=rv32i -Og --std=c99 \
          -ffreestanding -nostdlib \
          -ffunction-sections -fdata-sections
@@ -93,7 +97,7 @@ $(RESULT_DIR)/firmware.elf: \
 		$(C_SRC_DIR)/$(APP).o \
 		$(DRV_OBJS) \
 		$(LDFLAGS) \
-		-lgcc
+		-lgcc 
 
 # -------------------------------------------------
 # Compilation Rules
