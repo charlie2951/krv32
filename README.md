@@ -35,6 +35,7 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 |SSD1306 OLED Display| :white_check_mark:| 
 |ADXL 345 accelerometer| :white_check_mark:|
 |BMP180 barometric pressure<p> and temperature sensor| :white_check_mark:|
+|BMP280 barometric pressure<p> and temperature sensor| :white_check_mark:|
 |DHT11 temperature and humidity sensor|:white_check_mark:|
 |MPU6050|:white_check_mark:|
 |MPU9265|:white_check_mark:|
