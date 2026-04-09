@@ -62,3 +62,18 @@ void uart_sendline(UART_TypeDef *UARTx, const uint8_t *my_str) {
         uart_send(UARTx, tmp[i]);
 }
 
+//print number in unsigned form
+void uart_sendunsigned(UART_TypeDef *UARTx, uint32_t val)
+{
+    static char tmp[12];
+    int i = 0;
+       
+    do {
+        tmp[i++] = '0' + (val % 10);
+        val /= 10;
+    } while (val);
+
+    while (i--)
+        uart_send(UARTx, tmp[i]);
+}
+

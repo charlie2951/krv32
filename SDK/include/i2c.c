@@ -38,6 +38,7 @@ void i2c_write(i2c_t *i2c, uint8_t device, uint8_t reg, uint8_t data)
     i2c_wait_while_busy(i2c);
 }
 
+
 // =====================================================
 // Blocking Read Transaction
 // =====================================================

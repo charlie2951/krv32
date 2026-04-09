@@ -1,18 +1,18 @@
 #include "adxl345.h"
-
+#define SPI_PORT SPI0
 void adxl345_write_reg(uint8_t reg, uint8_t val) {
-    spi_cs_low();
-    spi_transfer(reg);    // Write: Bit 7 is 0
-    spi_transfer(val);
-    spi_cs_high();
+    spi_cs_low(SPI_PORT);
+    spi_transfer(SPI_PORT,reg);    // Write: Bit 7 is 0
+    spi_transfer(SPI_PORT,val);
+    spi_cs_high(SPI_PORT);
 }
 
 uint8_t adxl345_read_reg(uint8_t reg) {
     uint8_t val;
-    spi_cs_low();
-    spi_transfer(reg | ADXL345_SPI_READ); // Read: Bit 7 is 1
-    val = spi_transfer(0x00);          // Send dummy byte to clock in MISO
-    spi_cs_high();
+    spi_cs_low(SPI_PORT);
+    spi_transfer(SPI_PORT,reg | ADXL345_SPI_READ); // Read: Bit 7 is 1
+    val = spi_transfer(SPI_PORT,0x00);          // Send dummy byte to clock in MISO
+    spi_cs_high(SPI_PORT);
     return val;
 }
 
@@ -22,7 +22,7 @@ uint8_t adxl345_read_reg(uint8_t reg) {
  */
 uint8_t adxl345_spi_init(uint16_t clk_div) {
     // 1. Initialize SPI Hardware in Mode 3 (CPOL=1, CPHA=1)
-    spi_init(clk_div, 3);
+    spi_init(SPI_PORT,clk_div, 3);
 
     // 2. Simple power-on delay (approx 10ms depending on CPU speed)
     for(volatile int i = 0; i < 100000; i++);
@@ -47,14 +47,14 @@ uint8_t adxl345_spi_init(uint16_t clk_div) {
 void adxl345_read_accel(adxl345_data_t* data) {
     uint8_t raw[6];
 
-    spi_cs_low();
+    spi_cs_low(SPI_PORT);
     // Read 6 bytes starting from DATAX0, set Multi-Byte (MB) bit
-    spi_transfer(ADXL345_REG_DATAX0 | ADXL345_SPI_READ | ADXL345_SPI_MB);
+    spi_transfer(SPI_PORT,ADXL345_REG_DATAX0 | ADXL345_SPI_READ | ADXL345_SPI_MB);
     
     for(int i = 0; i < 6; i++) {
-        raw[i] = spi_transfer(0x00); // Clock in data
+        raw[i] = spi_transfer(SPI_PORT,0x00); // Clock in data
     }
-    spi_cs_high();
+    spi_cs_high(SPI_PORT);
 
     // Reassemble 16-bit signed values (Little Endian: LSB, then MSB)
     data->x = (int16_t)((raw[1] << 8) | raw[0]);

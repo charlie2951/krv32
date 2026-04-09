@@ -16,7 +16,8 @@
 typedef enum {
     SS_WORD_NONE = 0,
     SS_WORD_DONE = 1,
-    SS_WORD_BOOT = 2
+    SS_WORD_BOOT = 2,
+    SS_WORD_FAIL = 3
 } ss_word_t;
 
 /* Function Prototypes */

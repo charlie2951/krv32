@@ -13,11 +13,10 @@
 #define CMD_READ_STATUS_1   0x05
 
 // Function Prototypes
-uint8_t  w25q_init(uint16_t clk_div); // Updated to accept divider
 uint16_t w25q_get_id(void);
-void     w25q_read(uint32_t addr, uint8_t* buf, uint32_t len);
-void     w25q_erase_sector(uint32_t addr);
-void     w25q_write_page(uint32_t addr, uint8_t* data, uint16_t len);
-void     w25q_wait_busy(void);
+void w25q_read(uint32_t addr, uint8_t* buf, uint32_t len);
+void w25q_erase_sector(uint32_t addr);
+void w25q_write_page(uint32_t addr, uint8_t* data, uint16_t len);
+void w25q_wait_busy(void);
 
 #endif

@@ -31,5 +31,6 @@ uint8_t uart_receive(UART_TypeDef *UARTx);
 void uart_sendline(UART_TypeDef *UARTx, const uint8_t *my_str);
 void uart_init(UART_TypeDef *UARTx);
 void uart_sendnumber(UART_TypeDef *UARTx, int32_t val);
+void uart_sendunsigned(UART_TypeDef *UARTx, uint32_t val);
 #endif
 

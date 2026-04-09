@@ -4,7 +4,7 @@ void spi_bb_init() {
     GPIO_DIR |= (PIN_SCLK | PIN_MOSI | PIN_CS);
     GPIO_DIR &= ~(PIN_MISO);
     GPIO_DATA |= PIN_CS;   // CS Idle High
-    GPIO_DATA &= ~PIN_SCLK; // SCLK Idle Low
+    GPIO_DATA &= ~PIN_SCLK; // SCLK Idle low
 }
 
 static inline void spi_delay() {

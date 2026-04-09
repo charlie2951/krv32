@@ -1,7 +1,7 @@
 #include "mpu9265.h"
 #include "spi.h"
 #include "i2c.h"
-
+#define SPI_PORT SPI0
 // State tracking
 static mpu_interface_t _interface;
 static i2c_t* _i2c_bus = 0;
@@ -15,10 +15,10 @@ static i2c_t* _i2c_bus = 0;
 // =====================================================
 static void write_reg(uint8_t device_addr, uint8_t reg, uint8_t val) {
     if (_interface == MPU_INTERFACE_SPI) {
-        spi_cs_low();
-        spi_transfer(reg);
-        spi_transfer(val);
-        spi_cs_high();
+        spi_cs_low(SPI_PORT);
+        spi_transfer(SPI_PORT,reg);
+        spi_transfer(SPI_PORT,val);
+        spi_cs_high(SPI_PORT);
     } else {
         i2c_write(_i2c_bus, device_addr, reg, val);
     }
@@ -27,10 +27,10 @@ static void write_reg(uint8_t device_addr, uint8_t reg, uint8_t val) {
 static uint8_t read_reg(uint8_t device_addr, uint8_t reg) {
     if (_interface == MPU_INTERFACE_SPI) {
         uint8_t val;
-        spi_cs_low();
-        spi_transfer(reg | READ_BIT);
-        val = spi_transfer(0x00);
-        spi_cs_high();
+        spi_cs_low(SPI_PORT);
+        spi_transfer(SPI_PORT,reg | READ_BIT);
+        val = spi_transfer(SPI_PORT,0x00);
+        spi_cs_high(SPI_PORT);
         return val;
     } else {
         return i2c_read(_i2c_bus, device_addr, reg);
@@ -45,8 +45,8 @@ int MPU9265_Init(mpu_interface_t interface, void* i2c_inst) {
     _i2c_bus = (i2c_t*)i2c_inst;
 
     if (_interface == MPU_INTERFACE_SPI) {
-        spi_init(200, 3);
-        spi_cs_high();
+        spi_init(SPI_PORT,200, 3);
+        spi_cs_high(SPI_PORT);
     } else {
         // I2C already initialized in main.c typically
     }
@@ -85,15 +85,15 @@ void MPU9265_ReadAll(MPU9265_Data *data) {
 
     if (_interface == MPU_INTERFACE_SPI) {
         // Efficient SPI Burst Read
-        spi_cs_low();
-        spi_transfer(0x3B | READ_BIT);
-        for (int i = 0; i < 14; i++) raw[i] = spi_transfer(0x00);
-        spi_cs_high();
+        spi_cs_low(SPI_PORT);
+        spi_transfer(SPI_PORT,0x3B | READ_BIT);
+        for (int i = 0; i < 14; i++) raw[i] = spi_transfer(SPI_PORT,0x00);
+        spi_cs_high(SPI_PORT);
 
-        spi_cs_low();
-        spi_transfer(0x49 | READ_BIT); // EXT_SENS_DATA_00
-        for (int i = 14; i < 21; i++) raw[i] = spi_transfer(0x00);
-        spi_cs_high();
+        spi_cs_low(SPI_PORT);
+        spi_transfer(SPI_PORT,0x49 | READ_BIT); // EXT_SENS_DATA_00
+        for (int i = 14; i < 21; i++) raw[i] = spi_transfer(SPI_PORT,0x00);
+        spi_cs_high(SPI_PORT);
     } else {
         // I2C Individual Reads (as per your current API limitations)
         for (int i = 0; i < 14; i++) raw[i] = read_reg(MPU9265_ADDR, 0x3B + i);

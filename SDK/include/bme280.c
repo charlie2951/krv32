@@ -3,7 +3,7 @@
 #include "printf.h"
 // SPI helper functions
 #include "spi.h"
-
+#define SPI_PORT SPI0
 
 static bme280_calib_t calib;
 
@@ -170,10 +170,10 @@ static void bme280_write_reg_spi(uint8_t reg, uint8_t value) {
     // SPI Write: MSB of address must be 0
     uint8_t addr = reg & 0x7F; 
     
-    spi_cs_low();
-    spi_transfer(addr);
-    spi_transfer(value);
-    spi_cs_high();
+    spi_cs_low(SPI_PORT);
+    spi_transfer(SPI_PORT,addr);
+    spi_transfer(SPI_PORT,value);
+    spi_cs_high(SPI_PORT);
 }
 
 static uint8_t bme280_read_reg_spi(uint8_t reg) {
@@ -181,10 +181,10 @@ static uint8_t bme280_read_reg_spi(uint8_t reg) {
     uint8_t addr = reg | 0x80; 
     uint8_t data;
 
-    spi_cs_low();
-    spi_transfer(addr);
-    data = spi_transfer(0x00); // Send dummy byte to receive data
-    spi_cs_high();
+    spi_cs_low(SPI_PORT);
+    spi_transfer(SPI_PORT,addr);
+    data = spi_transfer(SPI_PORT,0x00); // Send dummy byte to receive data
+    spi_cs_high(SPI_PORT);
 
     return data;
 }
@@ -193,11 +193,11 @@ static uint16_t read16_spi(uint8_t reg) {
     uint8_t lsb, msb;
     uint8_t addr = reg | 0x80;
 
-    spi_cs_low();
-    spi_transfer(addr);
-    lsb = spi_transfer(0x00); // Read register 'reg'
-    msb = spi_transfer(0x00); // Read register 'reg + 1' (auto-increment)
-    spi_cs_high();
+    spi_cs_low(SPI_PORT);
+    spi_transfer(SPI_PORT,addr);
+    lsb = spi_transfer(SPI_PORT,0x00); // Read register 'reg'
+    msb = spi_transfer(SPI_PORT,0x00); // Read register 'reg + 1' (auto-increment)
+    spi_cs_high(SPI_PORT);
 
     return (uint16_t)(lsb | (msb << 8));
 }
@@ -212,7 +212,7 @@ static int16_t readS16_spi(uint8_t reg) {
 
 int8_t bme280_init_spi(uint16_t clk_div) {
     // Initialize hardware SPI (Mode 0 or 3 supported by Bosch)
-    spi_init(clk_div, 0); 
+    spi_init(SPI_PORT,clk_div, 0); 
 
     uint8_t id = bme280_read_reg_spi(BME280_CHIP_ID);
     if (id != 0x58 && id != 0x60) return -1;
@@ -259,12 +259,12 @@ void bme280_get_temperature_spi(int32_t *temp) {
     uint8_t msb, lsb, xlsb;
     uint8_t addr = 0xFA | 0x80;
 
-    spi_cs_low();
-    spi_transfer(addr);
-    msb  = spi_transfer(0x00);
-    lsb  = spi_transfer(0x00);
-    xlsb = spi_transfer(0x00);
-    spi_cs_high();
+    spi_cs_low(SPI_PORT);
+    spi_transfer(SPI_PORT,addr);
+    msb  = spi_transfer(SPI_PORT,0x00);
+    lsb  = spi_transfer(SPI_PORT,0x00);
+    xlsb = spi_transfer(SPI_PORT,0x00);
+    spi_cs_high(SPI_PORT);
 
     int32_t adc_T = (int32_t)(((uint32_t)msb << 12) | ((uint32_t)lsb << 4) | ((uint32_t)xlsb >> 4));
 
@@ -281,12 +281,12 @@ void bme280_get_pressure_spi(uint32_t *press) {
     uint8_t msb, lsb, xlsb;
     uint8_t addr = 0xF7 | 0x80;
 
-    spi_cs_low();
-    spi_transfer(addr);
-    msb  = spi_transfer(0x00); // 0xF7
-    lsb  = spi_transfer(0x00); // 0xF8
-    xlsb = spi_transfer(0x00); // 0xF9
-    spi_cs_high();
+    spi_cs_low(SPI_PORT);
+    spi_transfer(SPI_PORT,addr);
+    msb  = spi_transfer(SPI_PORT,0x00); // 0xF7
+    lsb  = spi_transfer(SPI_PORT,0x00); // 0xF8
+    xlsb = spi_transfer(SPI_PORT,0x00); // 0xF9
+    spi_cs_high(SPI_PORT);
 
     // 1. Fix ADC reconstruction (20-bit)
     int32_t adc_P = (int32_t)((((uint32_t)msb << 16) | ((uint32_t)lsb << 8) | (uint32_t)xlsb) >> 4);
@@ -323,11 +323,11 @@ void bme280_get_humidity_spi(uint32_t *hum) {
     uint8_t msb, lsb;
     uint8_t addr = 0xFD | 0x80;
 
-    spi_cs_low();
-    spi_transfer(addr);
-    msb = spi_transfer(0x00);
-    lsb = spi_transfer(0x00);
-    spi_cs_high();
+    spi_cs_low(SPI_PORT);
+    spi_transfer(SPI_PORT,addr);
+    msb = spi_transfer(SPI_PORT,0x00);
+    lsb = spi_transfer(SPI_PORT,0x00);
+    spi_cs_high(SPI_PORT);
 
     int32_t adc_H = (int32_t)(((uint32_t)msb << 8) | ((uint32_t)lsb));
 
