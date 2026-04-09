@@ -24,5 +24,7 @@ for i in range(data_word_count):
     w = bindata[4*i : 4*i+4]
     print("%02x%02x%02x%02x" % (w[3], w[2], w[1], w[0]))
 
+# Appending stop characters
+print("ABCDEF99")
 # Append the FFFFFFFF marker and stop immediately
 print("FFFFFFFF")

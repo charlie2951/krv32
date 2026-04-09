@@ -25,6 +25,19 @@ import serial
 import time
 import sys
 
+def display_logo():
+    logo = """
+  ██╗  ██╗██████╗ ██╗   ██╗    ██████╗ ██████╗ 
+  ██║ ██╔╝██╔══██╗██║   ██║    ╚════██╗╚════██╗
+  █████╔╝ ██████╔╝██║   ██║     █████╔╝ █████╔╝
+  ██╔═██╗ ██╔══██╗╚██╗ ██╔╝     ╚═══██╗██╔═══╝ 
+  ██║  ██╗██║  ██║ ╚████╔╝     ██████╔╝███████╗
+  ╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝      ╚═════╝ ╚══════╝
+                                               
+     --- RISC-V 32-Bit Microarchitecture ---
+    """
+    print(logo)
+
 def main():
     if len(sys.argv) != 3:
         print("Usage: python uart_upload.py <COM_PORT> <HEX_FILE>")
@@ -34,9 +47,9 @@ def main():
     HEX_FILE = sys.argv[2]
     BAUD = 115200
     print("\n---------------------------------------------------------------------\n")
-    print("-----KRV32-UART Bootloader for uploading HEX file to PROGRAM Memory----\n")
+    print("-----KRV32-UART Flasher for uploading Firmware to Board Flash----\n")
     print("Copyright: Dr. S.K.Maity, School of Electronics Engg, KIIT University--\n")
-
+    display_logo()
     try:
         ser = serial.Serial(PORT, BAUD, timeout=0.1)
     except serial.SerialException as e:
@@ -54,7 +67,7 @@ def main():
                     ser.write((tx + "\n").encode())
                     print("TX:", tx)
 
-                time.sleep(0.1)
+                time.sleep(0.05) #changing to 0.05 from 0.1
 
                 # Read any response from FPGA
                 while ser.in_waiting:
@@ -69,7 +82,7 @@ def main():
             if rx:
                 print("RX:", rx)
 
-        print("\nUpload complete\n")
+        print("\nUpload complete...\n")
         print("\nDisable the BOOT switch and Press RESET button on your board\n")
 
     except FileNotFoundError:

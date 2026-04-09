@@ -55,6 +55,4 @@ SECTIONS
      * End symbol
      * ------------------------------------------------- */
     _end = .;
-    /* Define the stack pointer at the end of the 8K memory block */
-    _stack_ptr = ORIGIN(mem) + LENGTH(mem);
 }

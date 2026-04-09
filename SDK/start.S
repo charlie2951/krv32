@@ -1,63 +1,57 @@
 /* -------------------------------------------------
- * RV32I startup code
+ * RV32I Bootloader Startup Code
+ * Lives in ROM at 0xD0000000
  * ------------------------------------------------- */
-
-    .equ MEM_SIZE, 0x2000        /* 8 KB stack top */
 
     .section .text.start, "ax"
     .globl _start
     .type  _start, @function
 
 _start:
-    /* -------------------------------------------------
-     * Clear registers (optional but safe)
-     * ------------------------------------------------- */
-    addi x1,  zero, 0
-    addi x2,  zero, 0
-    addi x3,  zero, 0
-    addi x4,  zero, 0
-    addi x5,  zero, 0
-    addi x6,  zero, 0
-    addi x7,  zero, 0
-    addi x8,  zero, 0
-    addi x9,  zero, 0
-    addi x10, zero, 0
-    addi x11, zero, 0
-    addi x12, zero, 0
-    addi x13, zero, 0
-    addi x14, zero, 0
-    addi x15, zero, 0
-    addi x16, zero, 0
-    addi x17, zero, 0
-    addi x18, zero, 0
-    addi x19, zero, 0
-    addi x20, zero, 0
-    addi x21, zero, 0
-    addi x22, zero, 0
-    addi x23, zero, 0
-    addi x24, zero, 0
-    addi x25, zero, 0
-    addi x26, zero, 0
-    addi x27, zero, 0
-    addi x28, zero, 0
-    addi x29, zero, 0
-    addi x30, zero, 0
-    addi x31, zero, 0
+    /* 1. Register Cleanup */
+    # (Keeping your cleanup logic is good practice)
+    li x1, 0
+    li x2, 0
+    li x3, 0
+    li x4, 0
+    li x5, 0
+    li x6, 0
+    li x7, 0
+    li x8, 0
+    li x9, 0
+    li x10, 0
+    li x11, 0
+    li x12, 0
+    li x13, 0
+    li x14, 0
+    li x15, 0
+    li x16, 0
+    li x17, 0
+    li x18, 0
+    li x19, 0
+    li x20, 0
+    li x21, 0
+    li x22, 0
+    li x23, 0
+    li x24, 0
+    li x25, 0
+    li x26, 0
+    li x27, 0
+    li x28, 0
+    li x29, 0
+    li x30, 0
+    li x31, 0
 
-    /* -------------------------------------------------
-     * Initialize stack pointer
-     * Stack grows downward from top of RAM
-     * ------------------------------------------------- */
-    li sp, MEM_SIZE
+    /* 2. Initialize Stack Pointer */
+    # Use the linker symbol _stack_ptr which points to the top of BRAM
+    la sp, _stack_ptr
 
-    /* -------------------------------------------------
-     * Jump to C entry
-     * ------------------------------------------------- */
+    /* 3. Call the main function Logic */
+    # This is the C function that copies Flash -> BRAM (0x00000000)
     call main
 
-    /* -------------------------------------------------
-     * If main returns, halt
-     * ------------------------------------------------- */
-1:
+    
+    /* 5. Halt (In case the app returns) */
+halt:
     ebreak
-    j 1b
+    j halt
