@@ -1,5 +1,5 @@
 module top(
-    input reset, clk, //control signals
+    input rst, clk, //control signals
     input boot_en, //boot enable pin
     input uart0_rx, //uart0-rx
     output uart0_tx, //uart0-tx
@@ -9,22 +9,11 @@ module top(
     inout i2c0_sda,//pins for i2c0(SDA)
     inout i2c0_scl,//pins for i2c0(SCL)
     inout i2c1_sda,//pins for i2c1(SDA)
-    inout i2c1_scl, //pins for i21(SCL)
-    output [3:0] an,
-    output [7:0] seg,
-   //SPI master ports
-    output wire SS,
-    output wire SCK,
-    output wire MOSI,
-    input  wire MISO
+    inout i2c1_scl //pins for i21(SCL)
     );
 
-//converting active high reset to active low
-wire rst;
-assign rst = !reset;
-//-----------------
     //Bus interfac e control lines
-  wire [31:0] mem_rdata, mem_wdata, addr,segment_data,SPI0_DATA;
+  wire [31:0] mem_rdata, mem_wdata, addr;
   wire rstrb;
   wire [3:0] wr_strobe;
   //peripheral data collect wires
@@ -49,9 +38,6 @@ assign rst = !reset;
   wire isdec_valid_out= (addr[31:24]==8'h0b); //crypto
   wire isdec_data_out= (addr[31:24]==8'h0c); //crypto
   wire iscrypto = isenc_valid_out|isenc_data_out|isdec_valid_out|isdec_data_out;
-  wire isSEG = (addr[31:16]==16'h1100);//seven seg disp
- wire isSPI0 = (addr[31:16]==16'hC100);//SPI-0 master
-
 
 //Selecting input data to CPU from memory or peripheral devices based on address
  wire [31:0] cpu_rdata = isMEM ? mem_rdata:
@@ -63,8 +49,6 @@ assign rst = !reset;
                         isTIMER1 ? timer1_rdata:
 			                  isI2C0 ? i2c0_rdata:
                         isI2C1 ? i2c1_rdata:
-			isSEG ? segment_data:
-			 isSPI0 ? SPI0_DATA:
                         iscrypto?crypto_data:32'h0;
 
 
@@ -194,36 +178,4 @@ i2c_master1_mmio i2c1(
 .i2c_sda(i2c1_sda),
 .i2c_scl(i2c1_scl)
 );
-
-//7 seg display controller
-seven_seg_mmio seg0 (
-    .clk(clk),      
-    .resetn(rst),   
-    // MMIO Interface (Base: 0x11000000)
-    .addr(addr),
-    .data_in(mem_wdata),
-    .data_out(segment_data),
-    .rstrb(rstrb),
-    .wstrb(wr_strobe),
-    // Physical Pins
-    .an(an),       
-    .seg(seg)       
-);
-
-// SPI-0 Master w25q flash interface
-riscv_spi_wrapper spi0(
-.clk(clk),
-.reset(!rst),
-.addr(addr),
-.data_in(mem_wdata),
-.data_out(SPI0_DATA),
-.rd_strobe(rstrb),
-.wr_strobe(wr_strobe),
-.spi_cs_n(SS),
-.sclk(SCK),
-.mosi(MOSI),
-.miso(MISO)
-);
-
-
 endmodule

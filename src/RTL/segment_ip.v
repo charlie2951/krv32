@@ -80,6 +80,15 @@ module seven_seg_mmio (
                         2'b01: seg = 8'hC0; // O
                         2'b00: seg = 8'h87; // t
                         default: seg = 8'hFF;
+		     endcase
+                end
+		4'h3: begin // "FAIL"
+                    case(active_digit)
+                        2'b11: seg = 8'h8E; // F
+                        2'b10: seg = 8'h88; // A
+                        2'b01: seg = 8'hF9; // I 
+                        2'b00: seg = 8'hC7; // L
+                        default: seg = 8'hFF;
                     endcase
                 end
                 default: seg = 8'hBF; // Dash "-" for unknown word
