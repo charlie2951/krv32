@@ -3,9 +3,9 @@
 #include "bmp180.h"
 #include "printf.h"
 
-#define MY_API_KEY "6SF9IC4P3TN0CPYG"
-char *ssid = "realmep3";
-char *pw = "12345687";
+#define MY_API_KEY "yor_api_key"
+char *ssid = "wifi_ssid";
+char *pw = "wifi_password";
 
 void main() {
  //setting up BMP180 over I2C0 port
