@@ -11,15 +11,18 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 > [!IMPORTANT]
 > **Detailed specifications and documentation section has been provided in the [Wiki page of KRV-32 Project](https://github.com/charlie2951/krv32/wiki/)**
 
+> [!NOTE]
+> **Starting from Version-5, the uploaded firmware is placed in the non-volatile flash segment. So after powering off, the firmware will not be erased. When the board is powered on, the in-built bootloader will copy the firmware from Flash to BRAM and execution will start. This feature is currently available on Basys-3 board with Macronix flash.**
+
 ## Features of KRV-32 soft IP SOC
 1. Supports RISC-V RV-32I extension
 2. Compatible with GNU toolchain
 3. Soft-IP, configurable as per your FPGA
 4. On-board LEDS can be interfaced using the C SDK
 5. Fully functional UART Transmitter and Receiver (currently supports 115200 baud rate only), one for debug and another for sensor interfacing
-6. BRAM-based BOOTLOADER support (does not need to generate bitstream every time while changing application code)
+6. Firmware UPLOADER support (does not need to generate bitstream every time while changing application code)
 7. Two dedicated hardware I2C master controllers support both slow and fast modes for sensor interfacing.
-8. Soft SPI library to access SPI peripherals and flash memory(single spi supported only).
+8. SPI library to access SPI peripherals and flash memory(single spi supported only).
 9. Dedicated hardware IP for onboard 7-segment display.
 10. Crypto core based on 32 bit AES, both encryption and decryption
 11. Hardware timer and free-running counter for generating an accurate delay
