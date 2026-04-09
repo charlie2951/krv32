@@ -43,8 +43,8 @@ Library for hardware timer and free-running counter
 `delay(value in microsec)`: Usages-> `delay(1000000)`: provides typically 1 sec delay  <p>
 ### `my_string.h`
 Support string operation similar to `string.h`<p>
-### `softi2c.h`
+### `i2c.h`
 Software implementation of `I2C` master using bit-banging using GPIO. Note that GPIO-0 -> SDA and GPIO-1 -> SCL. <p>
 
-**...Adding other APIs soon, SDK is under development**
+**For a detailed description of drivers, visit the Wiki page of this project**
 
