@@ -1,5 +1,5 @@
 module top(
-    input rst, clk, //control signals
+    input reset, clk, //control signals
     input boot_en, //boot enable pin
     input uart0_rx, //uart0-rx
     output uart0_tx, //uart0-tx
@@ -16,11 +16,21 @@ module top(
     output wire SS,
     output wire SCK,
     output wire MOSI,
-    input  wire MISO
+    input  wire MISO,
+// QSPI Physical Pins (Excluding Clock, which is handled by STARTUPE2)
+    output wire        sys_spi_cs_n,
+    output  wire   sys_spi_mosi,
+    input  wire   sys_spi_miso
+
     );
 
+    //assigning reset to internal rst signal
+    wire rst;
+    assign rst = reset;
+//spi internal clock by startup2e
+wire spi_clk_internal;
   //Bus interfac e control lines
-  wire [31:0] mem_rdata, mem_wdata, addr,segment_data, SPI0_DATA;
+  wire [31:0] mem_rdata, mem_wdata, addr,segment_data, SPI0_DATA,SPI_SYS_DATA;
   wire rstrb;
   wire [3:0] wr_strobe;
   //peripheral data collect wires
@@ -47,6 +57,7 @@ module top(
   wire iscrypto = isenc_valid_out|isenc_data_out|isdec_valid_out|isdec_data_out;
  wire isSEG = (addr[31:16]==16'h1100);//seven seg disp
  wire isSPI0 = (addr[31:16]==16'hC100);//SPI-0 master
+wire isSPI_SYS = (addr[31:16]==16'hC200);//SPI master-system
 
 //Selecting input data to CPU from memory or peripheral devices based on address
  wire [31:0] cpu_rdata = isMEM ? mem_rdata:
@@ -60,6 +71,7 @@ module top(
                         isI2C1 ? i2c1_rdata:
                         isSEG ? segment_data:
                         isSPI0 ? SPI0_DATA:
+			isSPI_SYS ? SPI_SYS_DATA:
                         iscrypto?crypto_data:32'h0;
 
 
@@ -221,4 +233,41 @@ riscv_spi_wrapper spi0(
 .mosi(MOSI),
 .miso(MISO)
 );
+
+// SPI-SYSTEM Master  flash interface
+riscv_spi_system_wrapper spi_sys(
+.clk(clk),
+.reset(!rst),
+.addr(addr),
+.data_in(mem_wdata),
+.data_out(SPI_SYS_DATA),
+.rd_strobe(rstrb),
+.wr_strobe(wr_strobe),
+.spi_cs_n(sys_spi_cs_n),//chip select
+.sclk(spi_clk_internal),//internal clock
+.mosi(sys_spi_mosi),
+.miso(sys_spi_miso)
+);
+
+//STARTUP2E primitive
+STARTUPE2 #(
+    .PROG_USR("FALSE"),   // Hardware: Always FALSE unless using specialized encryption
+    .SIM_CCLK_FREQ(0.0)   // Hardware: Ignored (Set to 0.0)
+) u_startup (
+    .CFGCLK(),            // Leave Open
+    .CFGMCLK(),           // Leave Open
+    .EOS(),               // Leave Open
+    .PREQ(),              // Leave Open
+    .CLK(1'b0),           // Leave 0
+    .GSR(1'b0),           // Global Set/Reset (Not needed for QSPI)
+    .GTS(1'b0),           // Global Tri-state (Not needed for QSPI)
+    .KEYCLEARB(1'b1),     // Internal logic tie-high
+    .PACK(1'b1),          // Internal logic tie-high
+    .USRCCLKO(spi_clk_internal), // Input: Connect your QSPI Master Clock here
+    .USRCCLKTS(1'b0),     // Input: 0 = Enable CCLK output, 1 = High-Z
+    .USRDONEO(1'b1),      // Input: Drive high to maintain 'DONE' status
+    .USRDONETS(1'b1)      // Input: 1 = Use internal DONE pull-up
+);
+
+
 endmodule

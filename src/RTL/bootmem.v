@@ -33,7 +33,7 @@ module bootmem(
     output reg [31:0] data_out
 
   );
-  parameter MEM_SIZE = 8192; //8kb boot memory
+  parameter MEM_SIZE = 2048; //2kbx4=8kb boot memory
   reg [31:0] BOOTMEM[0:MEM_SIZE-1]; //define program mem with 1024 location
   wire [29:0] mem_loc = {4'b0000,addr[27:2]};
   initial

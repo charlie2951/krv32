@@ -11,7 +11,7 @@ module progmem(
     output reg [31:0] data_out
 
   );
-  parameter MEM_SIZE = 2048;
+  parameter MEM_SIZE = 16384;//64KB program memory
   reg [31:0] PROGMEM[0:MEM_SIZE-1]; //define program mem with 1024 location
   wire [29:0] mem_loc = addr[31:2];
   
