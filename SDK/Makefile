@@ -52,6 +52,7 @@ DRV_OBJS = \
     $(INC_DIR)/esp_wifi.o \
     $(INC_DIR)/thingspeak.o\
     $(INC_DIR)/mx25.o \
+    $(INC_DIR)/s25fl.o \
     $(INC_DIR)/bme280.o
 
 # -------------------------------------------------
