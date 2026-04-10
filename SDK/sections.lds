@@ -6,7 +6,7 @@ ENTRY(_start)
 
 MEMORY
 {
-    mem (rxw) : ORIGIN = 0x00000000, LENGTH = 8K
+    mem (rxw) : ORIGIN = 0x00000000, LENGTH = 64K
 }
 
 SECTIONS

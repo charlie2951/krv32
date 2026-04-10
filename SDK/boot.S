@@ -3,7 +3,7 @@
 # -------------------------------------------------
 
 .equ MEM_START, 0xA0000000
-.equ MEM_SIZE,  0x2000       # 4KB (Changed from 0x800)
+.equ MEM_SIZE,  0x2000       # 8KB (Changed from 0x800)
 
 .section .text.start         # Matches KEEP(*(.text.start)) in boot.lds
 .globl _start                # Standard entry point name
@@ -20,3 +20,4 @@ _start:
 loop_forever:
     ebreak
     j loop_forever
+
