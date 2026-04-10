@@ -39,7 +39,7 @@ if {[file exists $PROJECT_FILE]} {
 
 set DEVICE_PART "xc7a35tcpg236-1"  ;# Specify your target FPGA part number
 set RTL_DIR "./src/RTL"               ;# Path to the directory containing your RTL (.v/.vhd) files
-set MEM_FILE_DIR "./src/mem"
+set MEM_FILE_DIR "./src/mem_basys3_flash"
 set TOP_MODULE "top"   ;# Name of your top-level design entity
 
 # =================================================================

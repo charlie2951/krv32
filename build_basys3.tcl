@@ -90,6 +90,8 @@ set rtl_files [list \
    $RTL_DIR/i2c_master.sv \
    $RTL_DIR/clock_counter.sv \
    $RTL_DIR/segment_ip.v \
+   $RTL_DIR/spi_master0_wrapper.v \
+   $RTL_DIR/spi_master.v \
 
 ]
 

@@ -39,7 +39,7 @@ if {[file exists $PROJECT_FILE]} {
 
 set DEVICE_PART "xc7a100tcsg324-1"  ;# Specify your target FPGA part number
 set RTL_DIR "./src/RTL"               ;# Path to the directory containing your RTL (.v/.vhd) files
-set MEM_FILE_DIR "./src/mem"
+set MEM_FILE_DIR "./src/mem_nexys4ddr"
 set TOP_MODULE "top"   ;# Name of your top-level design entity
 
 # =================================================================
@@ -92,6 +92,8 @@ set rtl_files [list \
    $RTL_DIR/segment_ip.v \
    $RTL_DIR/spi_master0_wrapper.v \
    $RTL_DIR/spi_master.v \
+   $RTL_DIR/spi_system_wrapper.v \
+
 
 ]
 
@@ -113,7 +115,6 @@ update_compile_order -fileset sources_1
 
 # Define the path to your constraint file
 set SDC_FILE_PATH "./src/nexys4ddr.xdc"
-#set SDC_FILE_PATH "./src/Basys-3-Master.xdc"
 
 # Add the SDC file to the constraints fileset
 add_files -fileset [get_filesets constrs_1] $SDC_FILE_PATH
@@ -172,7 +173,7 @@ puts "------ Generating MCS file for Flash -----"
 set bit_file "$PROJECT_DIR/$PROJECT_NAME.runs/impl_1/$TOP_MODULE.bit"
 set mcs_file "$PROJECT_DIR/$PROJECT_NAME.runs/impl_1/nexys4ddr.mcs"
 set flash_size "16"
-set interface "SPIx4"
+set interface "SPIx1"
 
 # 2. Run the write_cfgmem command
 write_cfgmem -format mcs \
