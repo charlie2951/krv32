@@ -3,7 +3,7 @@
 
 
 
-# A subset of RISC-V architecture (RV32I) SoC implementation for FPGA 
+# A subset of RISC-V architecture (RV32I) SoC implementation for FPGA (Pre-release Version-5.0)
 A tiny version of `RISC-V` for FPGA developed by the **Integrated System Design lab, School of Electronics, KIIT University** <p>
 **Objective**
 The main objective of this project is to prototype a RISC-V 32-bit CPU with an **RV32 base integer (RV32I) instruction set**. The CPU is coded using Verilog HDL from scratch, and most of the instruction sets are implemented. The code is compatible with the GNU RISC-V toolchain (both assembler and compiler).
@@ -12,7 +12,28 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 > **Detailed specifications and documentation section has been provided in the [Wiki page of KRV-32 Project](https://github.com/charlie2951/krv32/wiki/)**
 
 > [!NOTE]
-> **Starting from Version-5, the uploaded firmware is placed in the non-volatile flash segment. So after powering off, the firmware will not be erased. When the board is powered on, the in-built bootloader will copy the firmware from Flash to BRAM and execution will start. This feature is currently available on Basys-3 board with Macronix flash.**
+> **Starting from Version-5, the uploaded firmware is placed in the non-volatile flash segment. So after powering off, the firmware will not be erased. When the board is powered on, the built-in bootloader will copy the firmware from Flash to BRAM and execution will start. This feature is currently available on Basys-3 board with Macronix flash.**
+
+> [!IMPORTANT]
+> **How to start:**
+> Make sure that you have flashed the correct `MCS` file of your board. For details, see the [Wiki page above](https://github.com/charlie2951/krv32/wiki/). Create a new file named `hello.c` inside `SDK`. Put the following content inside the file.<p>
+```c
+#include "printf.h"
+int main(void){
+printf("\r\n Hello KRV32 SoC!...");
+while(1);
+return 0;
+}
+```
+Enter into uploader mode by changing the slide switch to HIGH located at the extreme right side of the board. Then press reset button. Now 7-segment display will show `BOOT` message and all 8 LEDs will glow.<p>
+
+Then open a terminal inside `SDK` and type
+
+```
+make clean
+make upload APP=hello PORT=COM_PORT_NO_OF_YOUR_PC
+```
+After successful uploading, `DONE` message wil be displayed into display. Now `RESET` the board to execute your app. Open a serial terminal at 115200 baud or type `python3 read_serial.py COM_NO_OF_PC` to display the serial monitor.
 
 ## Features of KRV-32 soft IP SOC
 1. Supports RISC-V RV-32I extension
