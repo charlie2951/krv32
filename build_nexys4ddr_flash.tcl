@@ -93,11 +93,13 @@ set rtl_files [list \
     $RTL_DIR/timer_counter.v \
     $RTL_DIR/i2c_wrapper.v \
     $RTL_DIR/i2c1_wrapper.v \
+   $RTL_DIR/i2c_board_wrapper.v \
    $RTL_DIR/i2c_master.sv \
    $RTL_DIR/clock_counter.sv \
    $RTL_DIR/segment_ip.v \
    $RTL_DIR/spi_master0_wrapper.v \
    $RTL_DIR/spi_master.v \
+   $RTL_DIR/spi_master1_wrapper.v \
    $RTL_DIR/spi_system_wrapper.v \
    
 ]
