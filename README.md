@@ -45,11 +45,11 @@ After successful uploading, `DONE` message wil be displayed into display. Now `R
 5. Fully functional UART Transmitter and Receiver (currently supports 115200 baud rate only), one for debug and another for sensor interfacing
 6. Firmware UPLOADER support (does not need to generate bitstream every time while changing application code)
 7. Two dedicated hardware I2C master controllers support both slow and fast modes for sensor interfacing.
-8. SPI library to access SPI peripherals and flash memory(single spi supported only).
+8. SPI library to access SPI peripherals and flash memory(single SPI supported only).
 9. Dedicated hardware IP for onboard 7-segment display.
-10. Crypto core based on 32 bit AES, both encryption and decryption
+10. Crypto core based on 32-bit AES, both encryption and decryption
 11. Hardware timer and free-running counter for generating an accurate delay
-12. Tested in Artix-7 series FPGA embedded in Digilent Nexys-4 DDR and Basys-3 board
+12. Tested in Artix-7 series FPGA embedded in Digilent Nexys-4 DDR, Basys-3, and Arty A7 board
 13. Timing violations are fixed at 100MHz.
 14. SDK with customized `Makefile` and a variety of drivers for sensor interfacing
 15. Several example demos have been provided
