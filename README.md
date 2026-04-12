@@ -27,7 +27,7 @@ while(1);
 return 0;
 }
 ```
-Enter into uploader mode by changing the slide switch to HIGH located at the extreme right side of the board. Then press reset button. Now 7-segment display will show `BOOT` message and all 8 LEDs will glow.<p>
+Enter into uploader mode by changing the slide switch to HIGH located at the extreme right side of the board. Then press reset button. Now 7-segment display will show `BOOT` message and all 8 LEDs will glow. Note: For arty a7 board, there is no 7segment display and only 4 LEDs will glow.<p>
 
 Then open a terminal inside `SDK` and type
 
