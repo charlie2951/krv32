@@ -104,7 +104,7 @@ After successful uploading, `DONE` message wil be displayed into display. Now `R
 `bootloader`: Contains a Python script to upload HEX file into FPGA BRAM i.e. program memory via UART.<p>
 `SDK`: Contains the C headers and application code for sensors and internal IPs to be compiled using RISC-V GNU toolchain<p>
 `TUTORIAL` : Contains sample demo programs <p>
-`mcs`: Pre-build MCS file for Nexys4-DDR and Basys-3 board <p>
+`mcs`: Pre-build MCS file for Nexys4-DDR, Arty A7, and Basys-3 board <p>
 
 > [!NOTE]
 > ***Known Limitations/issues/bugs*** <p>
