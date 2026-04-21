@@ -15,7 +15,7 @@ The main objective of this project is to prototype a RISC-V 32-bit CPU with an *
 > **Detailed specifications and documentation section has been provided in the [Wiki page of KRV-32 Project](https://github.com/charlie2951/krv32/wiki/)**
 
 > [!NOTE]
-> **Starting from Version-5, the uploaded firmware is placed in the non-volatile flash segment. So after powering off, the firmware will not be erased. When the board is powered on, the built-in bootloader will copy the firmware from Flash to BRAM and execution will start. Default firmware size mapped to flash is 8KB. It can be extended as per requirement.**
+> **Starting from Version-5, the uploaded firmware is placed in the non-volatile flash segment. So after powering off, the firmware will not be erased. When the board is powered on, the built-in bootloader will copy the firmware from Flash to BRAM and execution will start. Default firmware size mapped to flash is 64KB. It can be extended as per requirement.**
 
 > [!IMPORTANT]
 > **How to start:**
