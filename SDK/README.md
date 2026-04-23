@@ -10,6 +10,9 @@
 
 ## Compilation and Building
 Make sure that the RISC-V GNU toolchain is installed and added to the path. <p>
+<p>
+ Make sure that 'pyserial' library is installed in Python environment or use 'pip install pyserial' to install it. This is required to access serial port of PC.<p>
+ 
 Usages:
 `make`: will build the default **main.c** <p>
 `make APP=appname`: will build the specific code mentioned in file `appname.c`<p>
