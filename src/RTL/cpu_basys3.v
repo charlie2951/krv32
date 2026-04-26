@@ -1,17 +1,6 @@
-/* CPU Version 4.1
-Support RV-32I extension only
-Verified for synthesis in FPGA
-FSM based design
-R-type, I type and Branch instr included
-Shift operator implemented (SLL/SLLI, SRL/SRLI)
-Load and store implemented
-Jump implementing
-Bug: Arithmetic right shift SRA, SRAI not working
-Bug: LH, LB, SH, SB, LBU, LHU not working
-Revised on: 16/04/2025
-Bug fixed on 24/4/2025: LB, SB, LH, SH tested 
-LBU, LHU: implemented but not tested
-Reordering of state variable, No of state reduced
+/*
+Testing RV32IM extension of KRV32
+Date: 26/4/2026
 */
 module cpu(
     input rst, clk,
