@@ -1,1 +1,565 @@
-s
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RISC-V (RV32I) Web Simulator</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --accent: #10b981;
+      --danger: #ef4444;
+      --highlight: #3b82f633;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: var(--primary-hover); }
+    button.secondary { background: #475569; }
+    button.secondary:hover { background: #64748b; }
+    button.danger { background: var(--danger); }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      gap: 1px;
+      background: var(--border);
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Editor Section */
+    textarea {
+      flex: 1;
+      background: #020617;
+      color: #e2e8f0;
+      border: none;
+      padding: 16px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+    }
+
+    /* Assembly/Execution Display */
+    .code-view {
+      flex: 1;
+      overflow-y: auto;
+      background: #020617;
+      font-family: monospace;
+    }
+
+    .code-line {
+      display: flex;
+      padding: 4px 16px;
+      gap: 16px;
+      font-size: 13px;
+    }
+    .code-line.active {
+      background: var(--highlight);
+      border-left: 4px solid var(--primary);
+    }
+    .line-pc { color: var(--text-muted); width: 60px; }
+    .line-hex { color: #f59e0b; width: 90px; }
+    .line-asm { color: var(--text); }
+
+    /* Registers Grid */
+    .register-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .reg-card {
+      background: var(--bg);
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .reg-card.changed {
+      border-color: var(--accent);
+      background: #064e3b33;
+    }
+    .reg-name { color: var(--text-muted); }
+    .reg-val { color: var(--accent); font-weight: bold; }
+
+    /* Memory Table */
+    .memory-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .mem-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 8px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .status-bar {
+      background: #020617;
+      padding: 8px 16px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h2>RISC-V (RV32I) Simulator</h2>
+    <div class="toolbar">
+      <button id="btn-assemble">Assemble & Load</button>
+      <button id="btn-step" class="secondary">Step</button>
+      <button id="btn-run" class="secondary">Run</button>
+      <button id="btn-reset" class="danger">Reset</button>
+    </div>
+  </header>
+
+  <div class="main-layout">
+    <!-- Left: Code Input -->
+    <div class="panel">
+      <div class="panel-header">Assembly Source</div>
+      <textarea id="asm-input" spellcheck="false">// RV32I Assembly Program with Branches & Labels
+addi x1, x0, 0    // Loop counter (x1 = 0)
+addi x2, x0, 5    // Target value (x2 = 5)
+addi x3, x0, 0    // Accumulated sum (x3 = 0)
+
+loop:
+  addi x3, x3, 2  // x3 += 2
+  addi x1, x1, 1  // x1 += 1
+  blt  x1, x2, loop // Loop while x1 < x2
+
+ebreak</textarea>
+    </div>
+
+    <!-- Center: Execution View & Memory -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>Instruction Stream</span>
+        <span id="pc-display">PC: 0x00000000</span>
+      </div>
+      <div id="code-view" class="code-view"></div>
+      
+      <div class="panel-header" style="border-top: 1px solid var(--border);">Memory (First 64 Bytes)</div>
+      <div id="memory-view" class="memory-list"></div>
+    </div>
+
+    <!-- Right: Registers -->
+    <div class="panel">
+      <div class="panel-header">Registers (x0 - x31)</div>
+      <div id="register-grid" class="register-grid"></div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span id="status-state">State: Ready</span>
+    <span id="status-instr">Instructions Run: 0</span>
+  </div>
+
+  <script>
+    // --- Simulator Engine ---
+    class RISCV32 {
+      constructor(memSize = 65536) {
+        this.registers = new Int32Array(32);
+        this.prevRegisters = new Int32Array(32);
+        this.pc = 0;
+        this.memory = new Uint8Array(memSize);
+        this.halted = false;
+        this.instructionsRun = 0;
+        this.programMap = new Map(); // Address -> Metadata
+      }
+
+      reset() {
+        this.registers.fill(0);
+        this.prevRegisters.fill(0);
+        this.memory.fill(0);
+        this.pc = 0;
+        this.halted = false;
+        this.instructionsRun = 0;
+        this.programMap.clear();
+      }
+
+      getReg(r) { return r === 0 ? 0 : this.registers[r]; }
+      setReg(r, val) { 
+        if (r !== 0) {
+          this.prevRegisters[r] = this.registers[r];
+          this.registers[r] = val | 0;
+        }
+      }
+
+      readWord(addr) {
+        return this.memory[addr] |
+          (this.memory[addr + 1] << 8) |
+          (this.memory[addr + 2] << 16) |
+          (this.memory[addr + 3] << 24);
+      }
+
+      writeWord(addr, val) {
+        this.memory[addr] = val & 0xff;
+        this.memory[addr + 1] = (val >> 8) & 0xff;
+        this.memory[addr + 2] = (val >> 16) & 0xff;
+        this.memory[addr + 3] = (val >> 24) & 0xff;
+      }
+
+      step() {
+        if (this.halted) return;
+        const instr = this.readWord(this.pc);
+        const opcode = instr & 0x7f;
+        const rd = (instr >> 7) & 0x1f;
+        const funct3 = (instr >> 12) & 0x7;
+        const rs1 = (instr >> 15) & 0x1f;
+        const rs2 = (instr >> 20) & 0x1f;
+        const funct7 = (instr >> 25) & 0x7f;
+
+        let nextPc = this.pc + 4;
+        this.prevRegisters.set(this.registers);
+
+        switch (opcode) {
+          case 0x13: // OP-IMM
+            if (funct3 === 0x0) { // ADDI
+              const imm = (instr >> 20);
+              this.setReg(rd, this.getReg(rs1) + imm);
+            }
+            break;
+          case 0x33: // OP
+            if (funct3 === 0x0) {
+              if (funct7 === 0x00) this.setReg(rd, this.getReg(rs1) + this.getReg(rs2)); // ADD
+              else if (funct7 === 0x20) this.setReg(rd, this.getReg(rs1) - this.getReg(rs2)); // SUB
+            }
+            break;
+          case 0x03: // LOAD
+            if (funct3 === 0x2) { // LW
+              const imm = (instr >> 20);
+              this.setReg(rd, this.readWord(this.getReg(rs1) + imm));
+            }
+            break;
+          case 0x23: // STORE
+            if (funct3 === 0x2) { // SW
+              const imm = (((instr >> 25) << 5) | ((instr >> 7) & 0x1f) << 20) >> 20;
+              this.writeWord(this.getReg(rs1) + imm, this.getReg(rs2));
+            }
+            break;
+          case 0x63: { // BRANCH (BEQ, BNE, BLT, BGE)
+            const immB =
+              (((instr >> 31) & 0x1) << 12) |
+              (((instr >> 7) & 0x1) << 11) |
+              (((instr >> 25) & 0x3f) << 5) |
+              (((instr >> 8) & 0xf) << 1);
+            const imm = (immB << 19) >> 19; // Sign-extend 13-bit branch offset
+
+            const val1 = this.getReg(rs1);
+            const val2 = this.getReg(rs2);
+            let takeBranch = false;
+
+            if (funct3 === 0x0) takeBranch = (val1 === val2);      // BEQ
+            else if (funct3 === 0x1) takeBranch = (val1 !== val2); // BNE
+            else if (funct3 === 0x4) takeBranch = (val1 < val2);   // BLT
+            else if (funct3 === 0x5) takeBranch = (val1 >= val2);  // BGE
+
+            if (takeBranch) {
+              nextPc = this.pc + imm;
+            }
+            break;
+          }
+          case 0x73: // SYSTEM
+            this.halted = true;
+            break;
+          default:
+            this.halted = true;
+        }
+
+        if (!this.halted) {
+          this.pc = nextPc;
+          this.instructionsRun++;
+        }
+      }
+    }
+
+    // --- Line Assembler with Label & Branch Support ---
+    function parseReg(r) { return parseInt(r.replace('x', '')) || 0; }
+
+    function encodeBType(funct3, rs1, rs2, offset) {
+      const imm = offset & 0x1fff; // 13-bit signed offset
+      const imm12 = (imm >> 12) & 0x1;
+      const imm11 = (imm >> 11) & 0x1;
+      const imm10_5 = (imm >> 5) & 0x3f;
+      const imm4_1 = (imm >> 1) & 0xf;
+
+      return (
+        (imm12 << 31) |
+        (imm10_5 << 25) |
+        (rs2 << 20) |
+        (rs1 << 15) |
+        (funct3 << 12) |
+        (imm4_1 << 8) |
+        (imm11 << 7) |
+        0x63
+      );
+    }
+
+    function assembleLine(line, currentAddr = 0, labels = {}) {
+      const parts = line.replace(/,/g, '').trim().split(/\s+/);
+      const op = parts[0];
+
+      if (op === 'addi') {
+        const rd = parseReg(parts[1]);
+        const rs1 = parseReg(parts[2]);
+        const imm = parseInt(parts[3]) & 0xfff;
+        return (imm << 20) | (rs1 << 15) | (0x0 << 12) | (rd << 7) | 0x13;
+      }
+      if (op === 'add') {
+        const rd = parseReg(parts[1]);
+        const rs1 = parseReg(parts[2]);
+        const rs2 = parseReg(parts[3]);
+        return (0x00 << 25) | (rs2 << 20) | (rs1 << 15) | (0x0 << 12) | (rd << 7) | 0x33;
+      }
+      if (op === 'sw') {
+        const rs2 = parseReg(parts[1]);
+        const match = parts[2].match(/(-?\d+)\(x(\d+)\)/);
+        const imm = parseInt(match[1]) & 0xfff;
+        const rs1 = parseInt(match[2]);
+        const imm7 = (imm >> 5) & 0x7f;
+        const imm5 = imm & 0x1f;
+        return (imm7 << 25) | (rs2 << 20) | (rs1 << 15) | (0x2 << 12) | (imm5 << 7) | 0x23;
+      }
+      if (op === 'lw') {
+        const rd = parseReg(parts[1]);
+        const match = parts[2].match(/(-?\d+)\(x(\d+)\)/);
+        const imm = parseInt(match[1]) & 0xfff;
+        const rs1 = parseInt(match[2]);
+        return (imm << 20) | (rs1 << 15) | (0x2 << 12) | (rd << 7) | 0x03;
+      }
+      
+      // Branch Instructions: beq, bne, blt, bge
+      const branchFunct3 = { 'beq': 0x0, 'bne': 0x1, 'blt': 0x4, 'bge': 0x5 };
+      if (op in branchFunct3) {
+        const rs1 = parseReg(parts[1]);
+        const rs2 = parseReg(parts[2]);
+        const target = parts[3];
+        
+        let offset = 0;
+        if (target in labels) {
+          offset = labels[target] - currentAddr;
+        } else {
+          offset = parseInt(target) || 0;
+        }
+
+        return encodeBType(branchFunct3[op], rs1, rs2, offset);
+      }
+
+      if (op === 'ebreak') {
+        return 0x00100073;
+      }
+      return 0x00000013; // default NOP
+    }
+
+    // --- UI Controller ---
+    const sim = new RISCV32();
+    let runnerInterval = null;
+
+    function renderRegisters() {
+      const grid = document.getElementById('register-grid');
+      grid.innerHTML = '';
+      for (let i = 0; i < 32; i++) {
+        const card = document.createElement('div');
+        const changed = sim.registers[i] !== sim.prevRegisters[i];
+        card.className = `reg-card ${changed ? 'changed' : ''}`;
+        card.innerHTML = `
+          <span class="reg-name">x${i}</span>
+          <span class="reg-val">${sim.registers[i]}</span>
+        `;
+        grid.appendChild(card);
+      }
+    }
+
+    function renderCodeView() {
+      const view = document.getElementById('code-view');
+      view.innerHTML = '';
+      sim.programMap.forEach((meta, addr) => {
+        const line = document.createElement('div');
+        line.className = `code-line ${sim.pc === addr ? 'active' : ''}`;
+        line.innerHTML = `
+          <span class="line-pc">0x${addr.toString(16).padStart(4, '0')}</span>
+          <span class="line-hex">${meta.hex}</span>
+          <span class="line-asm">${meta.asm}</span>
+        `;
+        view.appendChild(line);
+      });
+    }
+
+    function renderMemory() {
+      const memView = document.getElementById('memory-view');
+      memView.innerHTML = '';
+      for (let i = 0; i < 32; i += 4) {
+        const val = sim.readWord(i);
+        const row = document.createElement('div');
+        row.className = 'mem-row';
+        row.innerHTML = `
+          <span style="color: var(--text-muted)">0x${i.toString(16).padStart(4, '0')}</span>
+          <span>${val.toString(16).padStart(8, '0')}</span>
+          <span style="color: var(--accent)">(${val})</span>
+        `;
+        memView.appendChild(row);
+      }
+    }
+
+    function updateUI() {
+      document.getElementById('pc-display').innerText = `PC: 0x${sim.pc.toString(16).padStart(8, '0')}`;
+      document.getElementById('status-state').innerText = `State: ${sim.halted ? 'Halted' : 'Ready'}`;
+      document.getElementById('status-instr').innerText = `Instructions Run: ${sim.instructionsRun}`;
+      renderRegisters();
+      renderCodeView();
+      renderMemory();
+    }
+
+    // Assembly Control with 2-Pass Label Resolution
+    document.getElementById('btn-assemble').addEventListener('click', () => {
+      sim.reset();
+      const rawLines = document.getElementById('asm-input').value.split('\n');
+      
+      const parsedLines = [];
+      const labels = {};
+      let currentAddr = 0;
+
+      // Pass 1: Gather labels and filter instructions
+      rawLines.forEach(line => {
+        // Strip inline comments
+        const clean = line.split('//')[0].trim();
+        if (!clean) return;
+
+        if (clean.endsWith(':')) {
+          const labelName = clean.replace(':', '').trim();
+          labels[labelName] = currentAddr;
+        } else if (clean.includes(':')) {
+          const [labelName, instr] = clean.split(':');
+          labels[labelName.trim()] = currentAddr;
+          parsedLines.push({ addr: currentAddr, asm: instr.trim() });
+          currentAddr += 4;
+        } else {
+          parsedLines.push({ addr: currentAddr, asm: clean });
+          currentAddr += 4;
+        }
+      });
+
+      // Pass 2: Assemble instructions with resolved label addresses
+      parsedLines.forEach(({ addr, asm }) => {
+        const hexVal = assembleLine(asm, addr, labels);
+        sim.writeWord(addr, hexVal);
+        sim.programMap.set(addr, {
+          asm: asm,
+          hex: `0x${(hexVal >>> 0).toString(16).padStart(8, '0')}`
+        });
+      });
+
+      updateUI();
+    });
+
+    document.getElementById('btn-step').addEventListener('click', () => {
+      sim.step();
+      updateUI();
+    });
+
+    document.getElementById('btn-run').addEventListener('click', () => {
+      if (runnerInterval) {
+        clearInterval(runnerInterval);
+        runnerInterval = null;
+        document.getElementById('btn-run').innerText = 'Run';
+      } else {
+        document.getElementById('btn-run').innerText = 'Pause';
+        runnerInterval = setInterval(() => {
+          if (sim.halted) {
+            clearInterval(runnerInterval);
+            runnerInterval = null;
+            document.getElementById('btn-run').innerText = 'Run';
+          } else {
+            sim.step();
+          }
+          updateUI();
+        }, 200);
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      if (runnerInterval) clearInterval(runnerInterval);
+      sim.reset();
+      updateUI();
+    });
+
+    // Initial Load
+    document.getElementById('btn-assemble').click();
+  </script>
+</body>
+</html>
+
