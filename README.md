@@ -9,6 +9,10 @@ A tiny version of `RISC-V` for FPGA developed by the **Integrated System Design 
 The main objective of this project is to prototype a RISC-V 32-bit CPU with an **RV32 base integer (RV32I) instruction set**. The CPU is coded using Verilog HDL from scratch, and most of the instruction sets are implemented. The code is compatible with the GNU RISC-V toolchain (both assembler and compiler).
 
 > [!IMPORTANT]
+> :loudspeaker::loudspeaker::loudspeaker: **Online RV32I Simulator ([see here](https://charlie2951.github.io/krv32/))**
+**Limitations:** Supports only RV32I, for Load/Store operations, only LW and SW is currently supported.
+
+> [!IMPORTANT]
 > :loudspeaker::loudspeaker::loudspeaker: **Limited support for Arduino IDE ([see here](https://github.com/charlie2951/krv32-arduino/blob/main/README.md))**
 
 > [!IMPORTANT]
