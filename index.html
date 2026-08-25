@@ -370,7 +370,8 @@ ebreak</textarea>
     }
 
     function assembleLine(line, currentAddr = 0, labels = {}) {
-      const parts = line.replace(/,/g, '').trim().split(/\s+/);
+      #const parts = line.replace(/,/g, '').trim().split(/\s+/);
+      const parts = line.replace(/,/g, ' ').trim().split(/\s+/);
       const op = parts[0];
 
       if (op === 'addi') {
