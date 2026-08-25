@@ -44,7 +44,7 @@
       align-items: center;
     }
 
-    button {
+    select, button {
       background: var(--primary);
       color: white;
       border: none;
@@ -53,16 +53,22 @@
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s;
+      outline: none;
+      font-size: 14px;
+    }
+    select {
+      background: #020617;
+      color: var(--text);
+      border: 1px solid var(--border);
     }
     button:hover { background: var(--primary-hover); }
     button.secondary { background: #475569; }
     button.secondary:hover { background: #64748b; }
     button.danger { background: var(--danger); }
+    button.sm { padding: 4px 10px; font-size: 12px; }
 
     .main-layout {
-      display: grid;
-      grid-template-columns: 320px 1fr 340px;
-      gap: 1px;
+      display: flex;
       background: var(--border);
       flex: 1;
       overflow: hidden;
@@ -73,6 +79,22 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      min-width: 180px;
+    }
+
+    .main-layout > .panel:nth-child(1) { flex: 0 0 320px; }
+    .main-layout > .panel:nth-child(3) { flex: 1; }
+    .main-layout > .panel:nth-child(5) { flex: 0 0 340px; }
+
+    .resizer {
+      width: 6px;
+      background: var(--border);
+      cursor: col-resize;
+      transition: background 0.2s;
+      z-index: 10;
+    }
+    .resizer:hover, .resizer.dragging {
+      background: var(--primary);
     }
 
     .panel-header {
@@ -85,6 +107,7 @@
       color: var(--text-muted);
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
     /* Editor Section */
@@ -149,13 +172,32 @@
     .reg-name { color: var(--text-muted); }
     .reg-val { color: var(--accent); font-weight: bold; }
 
-    /* Memory Table */
+    /* Memory Table & Inputs */
+    .mem-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      text-transform: none;
+    }
+    .mem-controls input {
+      width: 70px;
+      background: #020617;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+
     .memory-list {
       flex: 1;
       overflow-y: auto;
       padding: 12px;
       font-family: monospace;
       font-size: 13px;
+      background: #020617;
     }
     .mem-row {
       display: flex;
@@ -178,31 +220,30 @@
 <body>
 
   <header>
-    <h2> KRV32 RISC-V (RV32I) Simulator</h2>
+    <h2>KRV32 RISC-V (RV32I) Simulator</h2>
     <div class="toolbar">
+      <select id="example-select">
+        <option value="loop">Loop & Accumulator</option>
+        <option value="load_store">Load & Store Operations</option>
+        <option value="fibonacci">Fibonacci Series</option>
+      </select>
       <button id="btn-assemble">Assemble & Load</button>
+      <button id="btn-download" class="secondary">Download Hex</button>
       <button id="btn-step" class="secondary">Step</button>
       <button id="btn-run" class="secondary">Run</button>
       <button id="btn-reset" class="danger">Reset</button>
     </div>
   </header>
 
-  <div class="main-layout">
+  <div class="main-layout" id="main-layout">
     <!-- Left: Code Input -->
     <div class="panel">
       <div class="panel-header">Assembly Source</div>
-      <textarea id="asm-input" spellcheck="false">// RV32I Assembly Program with Branches & Labels
-addi x1, x0, 0    // Loop counter (x1 = 0)
-addi x2, x0, 5    // Target value (x2 = 5)
-addi x3, x0, 0    // Accumulated sum (x3 = 0)
-
-loop:
-  addi x3, x3, 2  // x3 += 2
-  addi x1, x1, 1  // x1 += 1
-  blt  x1, x2, loop // Loop while x1 < x2
-
-ebreak</textarea>
+      <textarea id="asm-input" spellcheck="false"></textarea>
     </div>
+
+    <!-- Resizer 1 -->
+    <div class="resizer" id="resizer-1"></div>
 
     <!-- Center: Execution View & Memory -->
     <div class="panel">
@@ -212,9 +253,22 @@ ebreak</textarea>
       </div>
       <div id="code-view" class="code-view"></div>
       
-      <div class="panel-header" style="border-top: 1px solid var(--border);">Memory (First 64 Bytes)</div>
+      <!-- Memory Visualizer Header with Range Inputs -->
+      <div class="panel-header" style="border-top: 1px solid var(--border);">
+        <span>Memory Visualizer</span>
+        <div class="mem-controls">
+          <span>Start:</span>
+          <input type="text" id="mem-start" value="0x0064">
+          <span>End:</span>
+          <input type="text" id="mem-end" value="0x0080">
+          <button id="btn-update-mem" class="sm">View</button>
+        </div>
+      </div>
       <div id="memory-view" class="memory-list"></div>
     </div>
+
+    <!-- Resizer 2 -->
+    <div class="resizer" id="resizer-2"></div>
 
     <!-- Right: Registers -->
     <div class="panel">
@@ -229,6 +283,63 @@ ebreak</textarea>
   </div>
 
   <script>
+    // --- Sample Programs Preset List ---
+    const SAMPLE_PROGRAMS = {
+      loop: `// Loop & Accumulator Example
+addi x1, x0, 0    // Loop counter (x1 = 0)
+addi x2, x0, 5    // Target value (x2 = 5)
+addi x3, x0, 10   // Accumulator sum (x3 = 10)
+
+loop:
+  addi x3, x3, 2  // x3 += 2
+  addi x1, x1, 1  // x1 += 1
+  blt  x1, x2, loop // Loop while x1 < x2
+
+ebreak`,
+
+      load_store: `// Memory Load & Store Operations
+addi x4, x0, 100   // Base address (x4 = 100 / 0x64)
+
+addi x5, x0, 15    // Val 1 = 15
+addi x6, x0, 25    // Val 2 = 25
+addi x7, x0, 40    // Val 3 = 40
+
+// Store Word (sw) to RAM
+sw x5, 0(x4)       // Memory[100] = 15
+sw x6, 4(x4)       // Memory[104] = 25
+sw x7, 8(x4)       // Memory[108] = 40
+
+// Read Word (lw) back into registers
+lw x10, 0(x4)      // x10 = Memory[100]
+lw x11, 4(x4)      // x11 = Memory[104]
+lw x12, 8(x4)      // x12 = Memory[108]
+
+ebreak`,
+
+      fibonacci: `// Fibonacci Sequence Generator
+addi x4, x0, 100   // Base memory address = 100
+addi x1, x0, 0     // Fib(0) = 0
+addi x2, x0, 1     // Fib(1) = 1
+
+sw x1, 0(x4)       // Store Fib(0)
+sw x2, 4(x4)       // Store Fib(1)
+
+addi x3, x0, 2     // Loop index i = 2
+addi x5, x0, 6     // Generate first 6 numbers
+addi x4, x4, 8     // Shift memory pointer
+
+fib_loop:
+  add  x6, x1, x2  // Fib(i) = Fib(i-1) + Fib(i-2)
+  sw   x6, 0(x4)   // Store into RAM
+  addi x1, x2, 0   // Shift Fib(i-2)
+  addi x2, x6, 0   // Shift Fib(i-1)
+  addi x4, x4, 4   // Increment pointer
+  addi x3, x3, 1   // Increment i
+  blt  x3, x5, fib_loop
+
+ebreak`
+    };
+
     // --- Simulator Engine ---
     class RISCV32 {
       constructor(memSize = 65536) {
@@ -260,6 +371,7 @@ ebreak</textarea>
       }
 
       readWord(addr) {
+        if (addr < 0 || addr + 3 >= this.memory.length) return 0;
         return this.memory[addr] |
           (this.memory[addr + 1] << 8) |
           (this.memory[addr + 2] << 16) |
@@ -267,6 +379,7 @@ ebreak</textarea>
       }
 
       writeWord(addr, val) {
+        if (addr < 0 || addr + 3 >= this.memory.length) return;
         this.memory[addr] = val & 0xff;
         this.memory[addr + 1] = (val >> 8) & 0xff;
         this.memory[addr + 2] = (val >> 16) & 0xff;
@@ -311,19 +424,19 @@ ebreak</textarea>
               this.writeWord(this.getReg(rs1) + imm, this.getReg(rs2));
             }
             break;
-          case 0x63: { // BRANCH (BEQ, BNE, BLT, BGE)
+          case 0x63: { // BRANCH
             const immB =
               (((instr >> 31) & 0x1) << 12) |
               (((instr >> 7) & 0x1) << 11) |
               (((instr >> 25) & 0x3f) << 5) |
               (((instr >> 8) & 0xf) << 1);
-            const imm = (immB << 19) >> 19; // Sign-extend 13-bit branch offset
+            const imm = (immB << 19) >> 19;
 
             const val1 = this.getReg(rs1);
             const val2 = this.getReg(rs2);
             let takeBranch = false;
 
-            if (funct3 === 0x0) takeBranch = (val1 === val2);      // BEQ
+            if (funct3 === 0x0) takeBranch = (val1 === val2);       // BEQ
             else if (funct3 === 0x1) takeBranch = (val1 !== val2); // BNE
             else if (funct3 === 0x4) takeBranch = (val1 < val2);   // BLT
             else if (funct3 === 0x5) takeBranch = (val1 >= val2);  // BGE
@@ -347,11 +460,11 @@ ebreak</textarea>
       }
     }
 
-    // --- Line Assembler with Label & Branch Support ---
+    // --- Line Assembler ---
     function parseReg(r) { return parseInt(r.replace('x', '')) || 0; }
 
     function encodeBType(funct3, rs1, rs2, offset) {
-      const imm = offset & 0x1fff; // 13-bit signed offset
+      const imm = offset & 0x1fff;
       const imm12 = (imm >> 12) & 0x1;
       const imm11 = (imm >> 11) & 0x1;
       const imm10_5 = (imm >> 5) & 0x3f;
@@ -370,7 +483,6 @@ ebreak</textarea>
     }
 
     function assembleLine(line, currentAddr = 0, labels = {}) {
-      #const parts = line.replace(/,/g, '').trim().split(/\s+/);
       const parts = line.replace(/,/g, ' ').trim().split(/\s+/);
       const op = parts[0];
 
@@ -403,7 +515,6 @@ ebreak</textarea>
         return (imm << 20) | (rs1 << 15) | (0x2 << 12) | (rd << 7) | 0x03;
       }
       
-      // Branch Instructions: beq, bne, blt, bge
       const branchFunct3 = { 'beq': 0x0, 'bne': 0x1, 'blt': 0x4, 'bge': 0x5 };
       if (op in branchFunct3) {
         const rs1 = parseReg(parts[1]);
@@ -423,7 +534,7 @@ ebreak</textarea>
       if (op === 'ebreak') {
         return 0x00100073;
       }
-      return 0x00000013; // default NOP
+      return 0x00000013;
     }
 
     // --- UI Controller ---
@@ -460,16 +571,30 @@ ebreak</textarea>
       });
     }
 
+    function parseAddress(inputStr, defaultVal) {
+      if (!inputStr) return defaultVal;
+      let trimmed = inputStr.trim().toLowerCase();
+      let val = trimmed.startsWith('0x') ? parseInt(trimmed, 16) : parseInt(trimmed, 10);
+      return isNaN(val) ? defaultVal : val;
+    }
+
     function renderMemory() {
       const memView = document.getElementById('memory-view');
       memView.innerHTML = '';
-      for (let i = 0; i < 32; i += 4) {
+      
+      let startAddr = parseAddress(document.getElementById('mem-start').value, 0);
+      let endAddr = parseAddress(document.getElementById('mem-end').value, 64);
+      
+      startAddr = Math.max(0, startAddr - (startAddr % 4));
+      endAddr = Math.min(sim.memory.length, Math.max(startAddr + 4, endAddr));
+
+      for (let i = startAddr; i < endAddr; i += 4) {
         const val = sim.readWord(i);
         const row = document.createElement('div');
         row.className = 'mem-row';
         row.innerHTML = `
           <span style="color: var(--text-muted)">0x${i.toString(16).padStart(4, '0')}</span>
-          <span>${val.toString(16).padStart(8, '0')}</span>
+          <span>0x${(val >>> 0).toString(16).padStart(8, '0')}</span>
           <span style="color: var(--accent)">(${val})</span>
         `;
         memView.appendChild(row);
@@ -485,8 +610,8 @@ ebreak</textarea>
       renderMemory();
     }
 
-    // Assembly Control with 2-Pass Label Resolution
-    document.getElementById('btn-assemble').addEventListener('click', () => {
+    // Assembly Logic
+    function runAssembly() {
       sim.reset();
       const rawLines = document.getElementById('asm-input').value.split('\n');
       
@@ -494,9 +619,8 @@ ebreak</textarea>
       const labels = {};
       let currentAddr = 0;
 
-      // Pass 1: Gather labels and filter instructions
+      // Pass 1: Extract labels
       rawLines.forEach(line => {
-        // Strip inline comments
         const clean = line.split('//')[0].trim();
         if (!clean) return;
 
@@ -514,19 +638,54 @@ ebreak</textarea>
         }
       });
 
-      // Pass 2: Assemble instructions with resolved label addresses
+      // Pass 2: Assemble to Machine Code
       parsedLines.forEach(({ addr, asm }) => {
-        const hexVal = assembleLine(asm, addr, labels);
-        sim.writeWord(addr, hexVal);
+        const rawHex = assembleLine(asm, addr, labels);
+        const cleanHex = (rawHex >>> 0).toString(16).padStart(8, '0');
+        
+        sim.writeWord(addr, rawHex);
         sim.programMap.set(addr, {
           asm: asm,
-          hex: `0x${(hexVal >>> 0).toString(16).padStart(8, '0')}`
+          hex: `0x${cleanHex}`,
+          rawHex: cleanHex // Clean hexadecimal string without 0x prefix
         });
       });
 
       updateUI();
+    }
+
+    document.getElementById('btn-assemble').addEventListener('click', runAssembly);
+
+    // Feature 1: Download Hex File Functionality (No '0x' prefix)
+    document.getElementById('btn-download').addEventListener('click', () => {
+      if (sim.programMap.size === 0) runAssembly();
+      
+      const hexLines = [];
+      sim.programMap.forEach(meta => {
+        hexLines.push(meta.rawHex);
+      });
+
+      const blob = new Blob([hexLines.join('\n')], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'program_hex.txt';
+      link.click();
+      URL.revokeObjectURL(link.href);
     });
 
+    // Feature 2: Dropdown Program Selector
+    const exampleSelect = document.getElementById('example-select');
+    const asmInput = document.getElementById('asm-input');
+
+    exampleSelect.addEventListener('change', (e) => {
+      const selectedKey = e.target.value;
+      if (SAMPLE_PROGRAMS[selectedKey]) {
+        asmInput.value = SAMPLE_PROGRAMS[selectedKey];
+        runAssembly();
+      }
+    });
+
+    // Step, Run, Reset Button Handlers
     document.getElementById('btn-step').addEventListener('click', () => {
       sim.step();
       updateUI();
@@ -558,9 +717,47 @@ ebreak</textarea>
       updateUI();
     });
 
-    // Initial Load
-    document.getElementById('btn-assemble').click();
+    // Handle range updates
+    document.getElementById('btn-update-mem').addEventListener('click', renderMemory);
+
+    // Dynamic Panel Resizers
+    function makeResizable(resizer, leftPanel) {
+      let x = 0;
+      let leftWidth = 0;
+
+      const onMouseDown = (e) => {
+        x = e.clientX;
+        leftWidth = leftPanel.getBoundingClientRect().width;
+        resizer.classList.add('dragging');
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      };
+
+      const onMouseMove = (e) => {
+        const dx = e.clientX - x;
+        const newLeftWidth = leftWidth + dx;
+        if (newLeftWidth > 180 && (window.innerWidth - e.clientX) > 180) {
+          leftPanel.style.flex = `0 0 ${newLeftWidth}px`;
+        }
+      };
+
+      const onMouseUp = () => {
+        resizer.classList.remove('dragging');
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      };
+
+      resizer.addEventListener('mousedown', onMouseDown);
+    }
+
+    const panels = document.querySelectorAll('.main-layout > .panel');
+    makeResizable(document.getElementById('resizer-1'), panels[0]);
+    makeResizable(document.getElementById('resizer-2'), panels[1]);
+
+    // Initial Program Setup
+    asmInput.value = SAMPLE_PROGRAMS.loop;
+    runAssembly();
   </script>
 </body>
 </html>
-
