@@ -206,14 +206,33 @@
       border-bottom: 1px solid #1e293b;
     }
 
+    /* Updated Status Bar with Visitor Counter */
     .status-bar {
       background: #020617;
-      padding: 8px 16px;
+      padding: 6px 16px;
       border-top: 1px solid var(--border);
       font-size: 12px;
       color: var(--text-muted);
       display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status-info {
+      display: flex;
       gap: 20px;
+      align-items: center;
+    }
+
+    .visitor-badge {
+      display: inline-flex;
+      align-items: center;
+      height: 20px;
+    }
+
+    .visitor-badge img {
+      height: 100%;
+      border-radius: 4px;
     }
   </style>
 </head>
@@ -278,8 +297,14 @@
   </div>
 
   <div class="status-bar">
-    <span id="status-state">State: Ready</span>
-    <span id="status-instr">Instructions Run: 0</span>
+    <div class="status-info">
+      <span id="status-state">State: Ready</span>
+      <span id="status-instr">Instructions Run: 0</span>
+    </div>
+    <!-- Visitor Counter Badge Placed at Bottom Right -->
+    <div class="visitor-badge">
+      <img src="https://hits.seeyoufarm.dev/api/count/incr/badge.svg?url=https%3A%2F%2Fcharlie2951.github.io%2krv32&count_bg=%2310B981&title_bg=%23334155&icon=&icon_color=%23E7E7E7&title=visitors&edge_flat=false" alt="Visitor Counter"/>
+    </div>
   </div>
 
   <script>
