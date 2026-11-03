@@ -68,7 +68,7 @@ puts "Adding specific RTL sources..."
 # so the script knows where to find them.
 
 set rtl_files [list \
-    $RTL_DIR/top_nexys4ddr_qspi.v \
+    $RTL_DIR/top_nexys4ddr_qspi_present.v \
     $RTL_DIR/cpu_nexys4ddr.v \
     $RTL_DIR/reset_sync.v \
     $RTL_DIR/progmem.v \
